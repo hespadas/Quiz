@@ -1,0 +1,16 @@
+{
+  "user created": "Usuário criado com sucesso",
+  "error": "Erro",
+  "register": "Registrar",
+  "username": "Nome de usuário",
+  "email": "E-mail",
+  "password": "Senha",
+  "submit": "Enviar",
+  "sign_in": "Entrar",
+  "invalid_credentials": "Credenciais inválidas",
+  "enter_username": "Digite o nome de usuário",
+  "enter_password": "Digite a senha",
+  "home": "Início",
+  "logout": "Sair",
+  "login": "Login"
+}

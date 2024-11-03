@@ -1,44 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import Login from './Login'; // Importando o componente Login
+// src/App.js
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./components/auth/AuthContext";
+import { Navigation } from "./components/navigation/Navigation";
+import { Home } from "./components/mainapp/Home";
+import { Login } from "./components/auth/Login";
+import { Logout } from "./components/auth/Logout";
+import Register from "./components/accounts/Register";
+import "./i18n/i18n";
 
 function App() {
-  const [mensagem, setMensagem] = useState('');
-
-  useEffect(() => {
-    axios.get('http://localhost:8000/api/teste/')
-      .then(response => {
-        setMensagem(response.data.mensagem);
-      })
-      .catch(error => {
-        console.error('Erro ao buscar dados da API!', error);
-      });
-  }, []);
-
   return (
     <Router>
-      <div>
-        <nav>
-          <ul>
-            <li><Link to="/teste">Teste da API</Link></li>
-            <li><Link to="/login">Login</Link></li>
-          </ul>
-        </nav>
-
+      <AuthProvider>
+        <Navigation />
         <Routes>
-          {/* Rota para a página de teste da API */}
-          <Route path="/teste" element={
-            <div>
-              <h1>Teste de Comunicação React e Django</h1>
-              <p>{mensagem}</p>
-            </div>
-          } />
-
-          {/* Rota para a página de login */}
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route path="/register" element={<Register />} />
         </Routes>
-      </div>
+      </AuthProvider>
     </Router>
   );
 }
