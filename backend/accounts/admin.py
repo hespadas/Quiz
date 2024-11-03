@@ -1,2 +1,0 @@
-
-# admin.site.register(User)/
