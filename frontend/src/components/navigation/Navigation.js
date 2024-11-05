@@ -17,6 +17,11 @@ export function Navigation() {
               {t("home")}
             </Link>
           )}
+          {isAuth && (
+            <Link to="/create-quiz" className="text-white hover:text-gray-400">
+              {t("createQuiz")}
+            </Link>
+          )}
         </div>
         <div>
           {isAuth ? (
