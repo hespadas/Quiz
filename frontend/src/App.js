@@ -8,6 +8,9 @@ import { Logout } from "./components/auth/Logout";
 import Register from "./components/accounts/Register";
 import Creation from "./components/quiz/Creation";
 import "./i18n/i18n";
+import List from "./components/quiz/List";
+import Detail from "./components/quiz/Detail";
+import Edit from "./components/quiz/Edit";
 
 function App() {
   return (
@@ -20,6 +23,10 @@ function App() {
           <Route path="/logout" element={<Logout />} />
           <Route path="/register" element={<Register />} />
           <Route path="/create-quiz" element={<Creation />} />
+          <Route path="/quizzes" element={<List />} />
+          <Route path="/quizzes/:id" element={<Detail />} />
+          <Route path="/quizzes/:id/edit/" element={<Edit />} />
+          <Route path="/quizzes/edit/:id/" element={<Edit />} />
         </Routes>
       </AuthProvider>
     </Router>

@@ -19,7 +19,12 @@ export function Navigation() {
           )}
           {isAuth && (
             <Link to="/create-quiz" className="text-white hover:text-gray-400">
-              {t("createQuiz")}
+              {t("Create Quiz")}
+            </Link>
+          )}
+          {isAuth && (
+            <Link to="/quizzes" className="text-white hover:text-gray-400">
+              {t("Quiz List")}
             </Link>
           )}
         </div>
