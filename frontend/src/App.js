@@ -26,7 +26,7 @@ function App() {
           <Route path="/quizzes" element={<List />} />
           <Route path="/quizzes/:id" element={<Detail />} />
           <Route path="/quizzes/:id/edit/" element={<Edit />} />
-          <Route path="/quizzes/edit/:id/" element={<Edit />} />
+          <Route path="/quiz/edit/:id/" element={<Edit />} />
         </Routes>
       </AuthProvider>
     </Router>

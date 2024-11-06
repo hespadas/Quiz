@@ -42,7 +42,7 @@ const EditQuiz = () => {
         console.error("Error fetching quiz:", err);
         setError(t("Failed to load quiz data."));
         if (err.response && err.response.status === 404) {
-          navigate("/quizzes"); // Redirect if quiz not found
+          navigate("/quizzes");
         }
       } finally {
         setLoading(false);

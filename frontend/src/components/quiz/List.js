@@ -125,7 +125,7 @@ const QuizList = () => {
                   {t("View Details")}
                 </Link>
                 <Link
-                  to={`/quizzes/edit/${quiz.id}`}
+                  to={`/quiz/edit/${quiz.id}`}
                   className="inline-block bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
                 >
                   {t("Edit")}

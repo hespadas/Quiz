@@ -14,7 +14,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
     initialData ? initialData.description : ""
   );
   const [category, setCategory] = useState(
-    initialData ? (initialData.category ? initialData.category : "") : ""
+    initialData && initialData.category ? initialData.category : ""
   );
   const [questions, setQuestions] = useState(
     initialData ? initialData.questions : []
@@ -69,7 +69,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
   const handleAddOption = (qIndex) => {
     const updatedQuestions = [...questions];
     updatedQuestions[qIndex].options.push({
-      id: null,
+      id: null, // New option; no ID yet
       text: "",
       is_correct: false,
     });
@@ -92,6 +92,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Validation: Ensure at least one correct option per question
     for (let q of questions) {
       if (!q.options.some((option) => option.is_correct)) {
         alert(t("Each question must have at least one correct option."));
@@ -102,14 +103,14 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
     const quizData = {
       title,
       description,
-      category_id: category || null,
+      category_id: category !== "" ? Number(category) : null, // Ensure integer
       questions: questions.map((q) => ({
-        id: q.id,
+        id: q.id, // Existing question ID or null for new questions
         text: q.text,
         order: q.order,
         question_type: q.question_type,
         options: q.options.map((o) => ({
-          id: o.id,
+          id: o.id, // Existing option ID or null for new options
           text: o.text,
           is_correct: o.is_correct,
         })),
@@ -118,11 +119,10 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
 
     try {
       if (isEdit && initialData) {
-        await axios.put(`/quizzes/${initialData.id}/edit/`, quizData);
+        await axios.put(`/quiz/edit/${initialData.id}`, quizData); // Confirmed URL is correct
         alert(t("Quiz updated successfully!"));
         navigate(`/quizzes/${initialData.id}/`);
       } else {
-        // Create new quiz
         await axios.post("/quizzes/create/", quizData);
         alert(t("Quiz created successfully!"));
         navigate("/quizzes");
@@ -139,6 +139,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
         {isEdit ? t("Edit Quiz") : t("Create New Quiz")}
       </h2>
       <form onSubmit={handleSubmit}>
+        {/* Quiz Details */}
         <div className="mb-6">
           <label className="block mb-2 font-medium">{t("Title")}</label>
           <input
@@ -175,6 +176,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
           </select>
         </div>
 
+        {/* Questions */}
         <div className="mb-6">
           <h3 className="text-xl font-semibold mb-2">{t("Questions")}</h3>
           {questions.map((question, qIndex) => (
@@ -231,6 +233,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
                 </select>
               </div>
 
+              {/* Options */}
               <div className="mb-2">
                 <h4 className="font-medium">{t("Options")}</h4>
                 {question.options.map((option, oIndex) => (
@@ -296,6 +299,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
           </button>
         </div>
 
+        {/* Submit Button */}
         <div className="text-center">
           <button
             type="submit"
