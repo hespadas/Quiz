@@ -19,6 +19,7 @@ const EditQuiz = () => {
     const fetchQuiz = async () => {
       try {
         const response = await axios.get(`/quizzes/${id}/`);
+        // Transform the data to match QuizForm's expected structure
         const quizData = {
           id: response.data.id,
           title: response.data.title,
@@ -41,7 +42,7 @@ const EditQuiz = () => {
         console.error("Error fetching quiz:", err);
         setError(t("Failed to load quiz data."));
         if (err.response && err.response.status === 404) {
-          navigate("/quizzes");
+          navigate("/quizzes"); // Redirect if quiz not found
         }
       } finally {
         setLoading(false);

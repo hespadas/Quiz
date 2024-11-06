@@ -2,10 +2,16 @@
 
 from rest_framework import serializers
 
-from quiz.models.category import Category
-from quiz.models.option import Option
-from quiz.models.question import Question
-from quiz.models.quiz import Quiz
+from .models.category import Category
+from .models.option import Option
+from .models.question import Question
+from .models.quiz import Quiz
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
 
 
 class OptionSerializer(serializers.ModelSerializer):
@@ -16,6 +22,7 @@ class OptionSerializer(serializers.ModelSerializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
     options = OptionSerializer(many=True)
+    id = serializers.IntegerField(required=False)
 
     class Meta:
         model = Question
@@ -28,14 +35,40 @@ class QuestionSerializer(serializers.ModelSerializer):
             Option.objects.create(question=question, **option_data)
         return question
 
+    def update(self, instance, validated_data):  # noqa: PLR6301
+        options_data = validated_data.pop('options', [])
+
+        instance.text = validated_data.get('text', instance.text)
+        instance.order = validated_data.get('order', instance.order)
+        instance.question_type = validated_data.get('question_type', instance.question_type)
+        instance.save()
+
+        for option_data in options_data:
+            option_id = option_data.get('id', None)
+            if option_id:
+                option = Option.objects.get(id=option_id, question=instance)
+                option.text = option_data.get('text', option.text)
+                option.is_correct = option_data.get('is_correct', option.is_correct)
+                option.save()
+            else:
+                Option.objects.create(question=instance, **option_data)
+
+        return instance
+
 
 class QuizSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True)
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), allow_null=True)
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source='category',
+        write_only=True,
+        allow_null=True
+    )
 
     class Meta:
         model = Quiz
-        fields = ['id', 'title', 'description', 'category', 'created_at', 'questions']
+        fields = ['id', 'title', 'description', 'category', 'category_id', 'created_at', 'questions']
 
     def create(self, validated_data):  # noqa: PLR6301
         questions_data = validated_data.pop('questions')
@@ -49,11 +82,9 @@ class QuizSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):  # noqa: PLR6301
         questions_data = validated_data.pop('questions', [])
-        category = validated_data.pop('category', None)
 
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
-        instance.category = category if category else instance.category
         instance.save()
 
         for question_data in questions_data:

@@ -14,7 +14,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
     initialData ? initialData.description : ""
   );
   const [category, setCategory] = useState(
-    initialData ? (initialData.category ? initialData.category.id : "") : ""
+    initialData ? (initialData.category ? initialData.category : "") : ""
   );
   const [questions, setQuestions] = useState(
     initialData ? initialData.questions : []
@@ -102,7 +102,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
     const quizData = {
       title,
       description,
-      category: category || null,
+      category_id: category || null,
       questions: questions.map((q) => ({
         id: q.id,
         text: q.text,
@@ -231,7 +231,6 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
                 </select>
               </div>
 
-              {/* Options */}
               <div className="mb-2">
                 <h4 className="font-medium">{t("Options")}</h4>
                 {question.options.map((option, oIndex) => (
@@ -297,7 +296,6 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
           </button>
         </div>
 
-        {/* Submit Button */}
         <div className="text-center">
           <button
             type="submit"

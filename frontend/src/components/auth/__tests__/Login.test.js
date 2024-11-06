@@ -8,7 +8,7 @@ jest.mock("../../../services/authService");
 
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key) => key, // Retorna a chave como texto para simplificar
+    t: (key) => key,
   }),
 }));
 

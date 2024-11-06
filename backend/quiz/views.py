@@ -1,3 +1,5 @@
+# quiz/views.py
+
 from rest_framework import filters, generics
 from rest_framework.decorators import permission_classes
 from rest_framework.pagination import PageNumberPagination
@@ -5,8 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .models.category import Category
 from .models.quiz import Quiz
-from .serializers import QuizSerializer
+from .serializers import CategorySerializer, QuizSerializer
 
 
 @permission_classes([IsAuthenticated])
@@ -31,11 +34,11 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 @permission_classes([IsAuthenticated])
 class QuizListView(generics.ListAPIView):
-    queryset = Quiz.objects.all()
+    queryset = Quiz.objects.all().order_by('-created_at')  # Order by newest first
     serializer_class = QuizSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title', 'description', 'category__name']
+    search_fields = ['title', 'description', 'category__name']  # Corrected
     ordering_fields = ['created_at', 'title']
 
 
@@ -49,3 +52,9 @@ class QuizDetailView(generics.RetrieveAPIView):
 class QuizUpdateView(generics.UpdateAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
+
+
+@permission_classes([IsAuthenticated])
+class CategoryListView(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
