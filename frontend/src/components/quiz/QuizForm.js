@@ -21,6 +21,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
   );
 
   const [availableCategories, setAvailableCategories] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -42,13 +43,12 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
     setQuestions([
       ...questions,
       {
-        id: null,
         text: "",
         order: questions.length + 1,
         question_type: "MC",
         options: [
-          { id: null, text: "", is_correct: false },
-          { id: null, text: "", is_correct: false },
+          { text: "", is_correct: false },
+          { text: "", is_correct: false },
         ],
       },
     ]);
@@ -69,7 +69,6 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
   const handleAddOption = (qIndex) => {
     const updatedQuestions = [...questions];
     updatedQuestions[qIndex].options.push({
-      id: null, // New option; no ID yet
       text: "",
       is_correct: false,
     });
@@ -92,10 +91,24 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validation: Ensure at least one correct option per question
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     for (let q of questions) {
       if (!q.options.some((option) => option.is_correct)) {
         alert(t("Each question must have at least one correct option."));
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    for (let q of questions) {
+      const optionTexts = q.options.map((o) => o.text.trim().toLowerCase());
+      const uniqueOptionTexts = new Set(optionTexts);
+      if (uniqueOptionTexts.size !== optionTexts.length) {
+        alert(t("Duplicate options found in a question."));
+        setIsSubmitting(false);
         return;
       }
     }
@@ -103,14 +116,14 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
     const quizData = {
       title,
       description,
-      category_id: category !== "" ? Number(category) : null, // Ensure integer
+      category_id: category !== "" ? Number(category) : null,
       questions: questions.map((q) => ({
-        id: q.id, // Existing question ID or null for new questions
+        ...(q.id && { id: q.id }),
         text: q.text,
         order: q.order,
         question_type: q.question_type,
         options: q.options.map((o) => ({
-          id: o.id, // Existing option ID or null for new options
+          ...(o.id && { id: o.id }),
           text: o.text,
           is_correct: o.is_correct,
         })),
@@ -119,7 +132,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
 
     try {
       if (isEdit && initialData) {
-        await axios.put(`/quiz/edit/${initialData.id}`, quizData); // Confirmed URL is correct
+        await axios.put(`/quiz/edit/${initialData.id}`, quizData);
         alert(t("Quiz updated successfully!"));
         navigate(`/quizzes/${initialData.id}/`);
       } else {
@@ -129,7 +142,16 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
       }
     } catch (error) {
       console.error("Error submitting quiz:", error);
-      alert(t("Failed to submit quiz. Please check your inputs."));
+
+      let errorMessage = "Failed to submit quiz. Please check your inputs.";
+      if (error.response && error.response.data) {
+        const errors = error.response.data;
+        errorMessage = JSON.stringify(errors);
+      }
+
+      alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -139,7 +161,6 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
         {isEdit ? t("Edit Quiz") : t("Create New Quiz")}
       </h2>
       <form onSubmit={handleSubmit}>
-        {/* Quiz Details */}
         <div className="mb-6">
           <label className="block mb-2 font-medium">{t("Title")}</label>
           <input
@@ -176,7 +197,6 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
           </select>
         </div>
 
-        {/* Questions */}
         <div className="mb-6">
           <h3 className="text-xl font-semibold mb-2">{t("Questions")}</h3>
           {questions.map((question, qIndex) => (
@@ -233,7 +253,6 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
                 </select>
               </div>
 
-              {/* Options */}
               <div className="mb-2">
                 <h4 className="font-medium">{t("Options")}</h4>
                 {question.options.map((option, oIndex) => (
@@ -299,11 +318,13 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
           </button>
         </div>
 
-        {/* Submit Button */}
         <div className="text-center">
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            disabled={isSubmitting}
+            className={`px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ${
+              isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             {isEdit ? t("Update Quiz") : t("Create Quiz")}
           </button>

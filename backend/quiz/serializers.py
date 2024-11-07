@@ -15,14 +15,16 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class OptionSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
+
     class Meta:
         model = Option
         fields = ['id', 'text', 'is_correct']
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
     options = OptionSerializer(many=True)
-    id = serializers.IntegerField(required=False)
 
     class Meta:
         model = Question
@@ -48,10 +50,15 @@ class QuestionSerializer(serializers.ModelSerializer):
         for option_data in options_data:
             option_id = option_data.get('id', None)
             if option_id:
-                option = Option.objects.get(id=option_id, question=instance)
-                option.text = option_data.get('text', option.text)
-                option.is_correct = option_data.get('is_correct', option.is_correct)
-                option.save()
+                try:
+                    option = Option.objects.get(id=option_id, question=instance)
+                    option.text = option_data.get('text', option.text)
+                    option.is_correct = option_data.get('is_correct', option.is_correct)
+                    option.save()
+                    existing_option_ids.remove(option_id)
+                except Option.DoesNotExist:
+
+                    continue
             else:
                 Option.objects.create(question=instance, **option_data)
 
@@ -61,14 +68,15 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class QuizSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True)
-    category = CategorySerializer(read_only=True)
+    id = serializers.IntegerField(read_only=True)
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(),
         source='category',
         write_only=True,
         allow_null=True
     )
+    category = CategorySerializer(read_only=True)
+    questions = QuestionSerializer(many=True)
 
     class Meta:
         model = Quiz
@@ -87,19 +95,21 @@ class QuizSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):  # noqa: PLR6301
         questions_data = validated_data.pop('questions', [])
 
-        instance = super().update(instance, validated_data)
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.category = validated_data.get('category', instance.category)
+        instance.save()
 
         existing_question_ids = [question.id for question in instance.questions.all()]
 
         for question_data in questions_data:
             question_id = question_data.get('id', None)
             if question_id:
-                question = Question.objects.get(id=question_id, quiz=instance)
-                existing_question_ids.remove(question_id)
-                question.text = question_data.get('text', question.text)
-                question.order = question_data.get('order', question.order)
-                question.question_type = question_data.get('question_type', question.question_type)
-                question.save()
+                try:
+                    question = Question.objects.get(id=question_id, quiz=instance)
+                    existing_question_ids.remove(question_id)
+                except Question.DoesNotExist:
+                    continue
 
                 question_serializer = QuestionSerializer(instance=question, data=question_data)
                 if question_serializer.is_valid():
