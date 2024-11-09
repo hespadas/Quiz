@@ -1,12 +1,14 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import ptTranslation from "./locales/pt/translation.json";
+import HttpBackend from "i18next-http-backend";
 
 i18n
   .use(LanguageDetector)
+  .use(HttpBackend)
   .use(initReactI18next)
   .init({
+    debug: true,
     detection: {
       order: [
         "navigator",
@@ -18,12 +20,12 @@ i18n
       ],
       caches: ["localStorage", "cookie"],
     },
-    resources: {
-      pt: { translation: ptTranslation },
-    },
     fallbackLng: "en",
     interpolation: {
       escapeValue: false,
+    },
+    backend: {
+      loadPath: "/i18n/{{lng}}/{{ns}}.json",
     },
   });
 

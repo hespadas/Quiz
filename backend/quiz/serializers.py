@@ -120,4 +120,7 @@ class QuizSerializer(serializers.ModelSerializer):
                 for option_data in options_data:
                     Option.objects.create(question=new_question, **option_data)
 
+        if existing_question_ids:
+            Question.objects.filter(id__in=existing_question_ids, quiz=instance).delete()
+
         return instance
