@@ -21,7 +21,7 @@
     "build": "react-scripts build",
     "test": "jest",
     "eject": "react-scripts eject",
-    "extract-translations": "i18next-scanner"
+    "merge-translations": "i18next-scanner && node merge-translations.js"
   },
   "eslintConfig": {
     "extends": [

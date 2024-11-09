@@ -5,15 +5,15 @@ module.exports = {
   output: "./",
   options: {
     debug: true,
-    removeUnusedKeys: true,
+    removeUnusedKeys: false,
     sort: true,
-    lngs: ["en", "pt"],
+    lngs: ["en", "pt-BR"],
     defaultLng: "en",
     defaultNs: "translation",
     ns: ["translation"],
     resource: {
-      loadPath: "i18n/{{lng}}/{{ns}}.json",
-      savePath: "i18n/{{lng}}/{{ns}}.json",
+      loadPath: "public/i18n/{{lng}}/{{ns}}.json",
+      savePath: "public/i18n/{{lng}}/{{ns}}.json",
       jsonIndent: 2,
       lineEnding: "\n",
     },
@@ -22,7 +22,6 @@ module.exports = {
     interpolation: {
       prefix: "{{",
       suffix: "}}",
-      escapeValue: false,
     },
     func: {
       list: ["t", "i18next.t"],
@@ -34,6 +33,5 @@ module.exports = {
       defaultsKey: "defaults",
       extensions: [".js", ".jsx"],
     },
-    defaultValue: "__STRING_NOT_TRANSLATED__",
   },
 };
