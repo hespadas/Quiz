@@ -22,7 +22,6 @@ const QuizDetail = () => {
         const response = await axios.get(`/quizzes/${id}/`);
         setQuiz(response.data);
       } catch (err) {
-        console.error("Error fetching quiz:", err);
         setError(t("Failed to load quiz details."));
         if (err.response && err.response.status === 401) {
           navigate("/login");

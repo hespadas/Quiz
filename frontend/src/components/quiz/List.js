@@ -33,7 +33,6 @@ const QuizList = () => {
         setQuizzes(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } catch (err) {
-        console.error("Error fetching quizzes:", err);
         setError(t("Failed to load quizzes."));
         if (err.response && err.response.status === 401) {
           navigate("/login");
