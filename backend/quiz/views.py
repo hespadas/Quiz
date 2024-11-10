@@ -9,7 +9,8 @@ from rest_framework.views import APIView
 
 from .models.category import Category
 from .models.quiz import Quiz
-from .serializers import CategorySerializer, QuizSerializer
+from .serializers.category_serializer import CategorySerializer
+from .serializers.quiz_serializer import QuizSerializer
 
 
 @permission_classes([IsAuthenticated])

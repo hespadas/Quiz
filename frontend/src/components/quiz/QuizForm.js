@@ -62,10 +62,21 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
 
   const handleOptionChange = (qIndex, oIndex, field, value) => {
     const updatedQuestions = [...questions];
-    updatedQuestions[qIndex].options[oIndex][field] = value;
+    if (field === "is_correct" && value === true) {
+      updatedQuestions[qIndex].options = updatedQuestions[qIndex].options.map(
+        (option, index) => {
+          return {
+            ...option,
+            is_correct: index === oIndex,
+          };
+        }
+      );
+    } else {
+      updatedQuestions[qIndex].options[oIndex][field] = value;
+    }
+
     setQuestions(updatedQuestions);
   };
-
   const handleAddOption = (qIndex) => {
     const updatedQuestions = [...questions];
     updatedQuestions[qIndex].options.push({
@@ -141,8 +152,6 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
         navigate("/quizzes");
       }
     } catch (error) {
-      console.error("Error submitting quiz:", error);
-
       let errorMessage = "Failed to submit quiz. Please check your inputs.";
       if (error.response && error.response.data) {
         const errors = error.response.data;
