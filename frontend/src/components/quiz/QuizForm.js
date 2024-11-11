@@ -1,9 +1,8 @@
-// src/components/quiz/QuizForm.js
-
 import React, { useState, useEffect } from "react";
 import axios from "../../services/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 const QuizForm = ({ initialData = null, isEdit = false }) => {
   const { t } = useTranslation();
@@ -30,6 +29,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
         setAvailableCategories(response.data);
       } catch (error) {
         console.error("Error fetching categories:", error);
+        toast.error(t("Error fetching categories"));
       }
     };
     fetchCategories();
@@ -108,7 +108,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
 
     for (let q of questions) {
       if (!q.options.some((option) => option.is_correct)) {
-        alert(t("Each question must have at least one correct option."));
+        toast.error(t("Each question must have at least one correct option."));
         setIsSubmitting(false);
         return;
       }
@@ -118,7 +118,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
       const optionTexts = q.options.map((o) => o.text.trim().toLowerCase());
       const uniqueOptionTexts = new Set(optionTexts);
       if (uniqueOptionTexts.size !== optionTexts.length) {
-        alert(t("Duplicate options found in a question."));
+        toast.error(t("Duplicate options found in a question."));
         setIsSubmitting(false);
         return;
       }
@@ -144,21 +144,20 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
     try {
       if (isEdit && initialData) {
         await axios.put(`/quiz/edit/${initialData.id}`, quizData);
-        alert(t("Quiz updated successfully!"));
+        toast.success(t("Quiz updated successfully!"));
         navigate(`/quizzes/${initialData.id}/`);
       } else {
         await axios.post("/quizzes/create/", quizData);
-        alert(t("Quiz created successfully!"));
+        toast.success(t("Quiz created successfully!"));
         navigate("/quizzes");
       }
     } catch (error) {
-      let errorMessage = "Failed to submit quiz. Please check your inputs.";
+      let errorMessage = t("Failed to submit quiz. Please check your inputs.");
       if (error.response && error.response.data) {
         const errors = error.response.data;
         errorMessage = JSON.stringify(errors);
       }
-
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

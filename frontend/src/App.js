@@ -1,4 +1,3 @@
-// src/App.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./components/auth/AuthContext";
 import { Navigation } from "./components/navigation/Navigation";
@@ -11,12 +10,15 @@ import "./i18n/i18n";
 import List from "./components/quiz/List";
 import Detail from "./components/quiz/Detail";
 import Edit from "./components/quiz/Edit";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <Navigation />
+        <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -25,7 +27,6 @@ function App() {
           <Route path="/create-quiz" element={<Creation />} />
           <Route path="/quizzes" element={<List />} />
           <Route path="/quizzes/:id" element={<Detail />} />
-          <Route path="/quizzes/:id/edit/" element={<Edit />} />
           <Route path="/quiz/edit/:id/" element={<Edit />} />
         </Routes>
       </AuthProvider>
