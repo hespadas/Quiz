@@ -13,19 +13,33 @@ export function Navigation() {
       <nav className="container mx-auto flex justify-between items-center p-4">
         <div className="flex space-x-4">
           {isAuth && (
-            <Link to="/" className="text-white hover:text-gray-400">
-              {t("home")}
-            </Link>
-          )}
-          {isAuth && (
-            <Link to="/create-quiz" className="text-white hover:text-gray-400">
-              {t("Create Quiz")}
-            </Link>
-          )}
-          {isAuth && (
-            <Link to="/quizzes" className="text-white hover:text-gray-400">
-              {t("Quiz List")}
-            </Link>
+            <>
+              <Link to="/" className="text-white hover:text-gray-400">
+                {t("home")}
+              </Link>
+              <Link
+                to="/create-quiz"
+                className="text-white hover:text-gray-400"
+              >
+                {t("Create Quiz")}
+              </Link>
+              <Link to="/quizzes" className="text-white hover:text-gray-400">
+                {t("Quiz List")}
+              </Link>
+              {/* New Menu Items */}
+              <Link
+                to="/game_rooms/create"
+                className="text-white hover:text-gray-400"
+              >
+                {t("Create Game Room")}
+              </Link>
+              <Link
+                to="/game_rooms/join"
+                className="text-white hover:text-gray-400"
+              >
+                {t("Join Game Room")}
+              </Link>
+            </>
           )}
         </div>
         <div>
