@@ -1,7 +1,15 @@
 from django.urls import path
 
 from . import views
-from .views import GameCreateView, GameRetrieveView, QuizCreateView, QuizDetailView, QuizListView, QuizUpdateView
+from .views import (
+    GameCreateView,
+    GameRetrieveView,
+    QuizCreateView,
+    QuizDetailView,
+    QuizListView,
+    QuizUpdateView,
+    UserInfoView,
+)
 
 app_name = "quiz"
 
@@ -15,4 +23,5 @@ urlpatterns = [
     path('start/', views.QuizStartView.as_view(), name='quiz-start'),
     path('game_rooms/create/', GameCreateView.as_view(), name='game_room_create'),
     path('game_rooms/<str:code>/', GameRetrieveView.as_view(), name='game_room_detail'),
+    path('user-info/', UserInfoView.as_view(), name='user_info'),
 ]

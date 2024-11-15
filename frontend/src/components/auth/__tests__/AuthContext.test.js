@@ -1,4 +1,5 @@
-import { render, waitFor } from "@testing-library/react";
+import React from "react";
+import { render, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import authService from "../../../services/authService";
 import { AuthContext, AuthProvider } from "../AuthContext";
@@ -17,13 +18,13 @@ jest.mock("react-router-dom", () => ({
 
 describe("AuthContext", () => {
   const mockNavigate = jest.fn();
-  const mockLocation = { pathname: "/login" }; // Define o caminho padrão como "/login"
+  const mockLocation = { pathname: "/login" };
 
   beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
     useNavigate.mockReturnValue(mockNavigate);
-    useLocation.mockReturnValue(mockLocation); // Simula o caminho como "/login"
+    useLocation.mockReturnValue(mockLocation);
   });
 
   it("sets isAuth to false if pathname is /login", async () => {
@@ -46,7 +47,7 @@ describe("AuthContext", () => {
   });
 
   it("sets isAuth to false and redirects to /login if checkAuth fails", async () => {
-    useLocation.mockReturnValue({ pathname: "/some-other-path" }); // Teste para outra rota que não "/login" ou "/register"
+    useLocation.mockReturnValue({ pathname: "/some-other-path" });
     authService.checkAuth.mockRejectedValueOnce(new Error("Auth error"));
 
     let contextValue;

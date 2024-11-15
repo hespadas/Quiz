@@ -1,4 +1,4 @@
-// src/contexts/AuthProvider.js
+// src/components/auth/AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
@@ -6,7 +6,8 @@ import authService from "../../services/authService";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isAuth, setIsAuth] = useState(null);
+  const [isAuth, setIsAuth] = useState(false); // Start as false
+  const [user, setUser] = useState(null);
   const [tokenExpiry, setTokenExpiry] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,6 +22,9 @@ export const AuthProvider = ({ children }) => {
       try {
         await authService.checkAuth();
         setIsAuth(true);
+
+        // const response = await authService.getUserInfo();
+        // setUser(response.data);
 
         const accessTokenExp = localStorage.getItem("access_token_exp");
         if (accessTokenExp) {
@@ -61,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   }, [isAuth, tokenExpiry, navigate]);
 
   return (
-    <AuthContext.Provider value={{ isAuth, setIsAuth }}>
+    <AuthContext.Provider value={{ isAuth, user, setIsAuth }}>
       {children}
     </AuthContext.Provider>
   );

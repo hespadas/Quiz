@@ -37,11 +37,11 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 @permission_classes([IsAuthenticated])
 class QuizListView(generics.ListAPIView):
-    queryset = Quiz.objects.all().order_by('-created_at')  # Order by newest first
+    queryset = Quiz.objects.all().order_by('-created_at')
     serializer_class = QuizSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title', 'description', 'category__name']  # Corrected
+    search_fields = ['title', 'description', 'category__name']
     ordering_fields = ['created_at', 'title']
 
 
@@ -90,3 +90,16 @@ class GameRetrieveView(generics.RetrieveAPIView):
     serializer_class = GameSerializer
     lookup_field = 'code'
     permission_classes = [IsAuthenticated]
+
+
+class UserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        user = request.user
+        data = {
+            'username': user.username,
+            'email': user.email,
+        }
+        return Response(data)

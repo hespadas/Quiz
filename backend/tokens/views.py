@@ -6,15 +6,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .managers import CookieManager
 from .services import TokenBlacklistService
 
 logger = getLogger(__name__)
-
-
-from rest_framework_simplejwt.tokens import AccessToken
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
