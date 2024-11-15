@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       if (location.pathname === "/login" || location.pathname === "/register") {
         setIsAuth(false);
+        setUser(null);
         return;
       }
 
@@ -23,8 +24,10 @@ export const AuthProvider = ({ children }) => {
         await authService.checkAuth();
         setIsAuth(true);
 
-        // const response = await authService.getUserInfo();
-        // setUser(response.data);
+        // Inserted Code Starts Here
+        const response = await authService.getUserInfo();
+        setUser(response);
+        // Inserted Code Ends Here
 
         const accessTokenExp = localStorage.getItem("access_token_exp");
         if (accessTokenExp) {
@@ -32,6 +35,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         setIsAuth(false);
+        setUser(null);
         navigate("/login");
       }
     };
@@ -50,6 +54,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuth(true);
       } catch (error) {
         setIsAuth(false);
+        setUser(null);
         navigate("/login");
       }
     };

@@ -24,8 +24,16 @@ const authService = {
 
   async refreshToken() {
     try {
-      const response = await axios.post("/auth/token/refresh/");
-      return response;
+      return await axios.post("/auth/token/refresh/");
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getUserInfo() {
+    try {
+      const response = await axios.get("/user-info/");
+      return response.data;
     } catch (error) {
       throw error;
     }

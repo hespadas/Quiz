@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import axios from "../../services/axiosConfig";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -12,26 +12,81 @@ const GameRoom = () => {
   const [gameRoom, setGameRoom] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
+  const [error, setError] = useState(null);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     const fetchGameRoom = async () => {
       try {
+        console.log("Fetching game room with code:", code);
         const response = await axios.get(`/game_rooms/${code}/`);
+        console.log("Game room data received:", response.data);
         setGameRoom(response.data);
-      } catch (error) {
-        console.error("Error fetching game room:", error);
+      } catch (err) {
+        console.error("Error fetching game room:", err.response || err.message);
+        setError(t("Error fetching game room."));
         toast.error(t("Error fetching game room."));
       }
     };
+
     fetchGameRoom();
   }, [code, t]);
 
+  useEffect(() => {
+    if (gameRoom) {
+      const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+      const backendHost = "localhost";
+      const backendPort = "8000";
+      const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/`;
+      console.log("Establishing WebSocket connection to:", wsUrl);
+
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log("WebSocket connected");
+      };
+
+      ws.onmessage = (event) => {
+        console.log("WebSocket message received:", event.data);
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "question_advanced") {
+            setCurrentQuestionIndex(data.question_index);
+            console.log("Question advanced to index:", data.question_index);
+          }
+        } catch (err) {
+          console.error("Error parsing WebSocket message:", err);
+        }
+      };
+
+      ws.onclose = (event) => {
+        console.log("WebSocket disconnected:", event);
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        toast.error(
+          t("WebSocket encountered an error. Please try again later.")
+        );
+      };
+
+      socketRef.current = ws;
+
+      return () => {
+        console.log("Closing WebSocket connection");
+        ws.close();
+      };
+    }
+  }, [gameRoom, code, t]);
+
   if (!gameRoom) {
-    return <p>{t("Loading game room...")}</p>;
+    return <p>{error || t("Loading game room...")}</p>;
   }
 
   const questions = gameRoom.quiz.questions;
   const currentQuestion = questions[currentQuestionIndex];
+
+  const isHost = gameRoom.host === user?.username;
 
   const handleOptionSelect = (optionId) => {
     setSelectedOptions((prevSelectedOptions) => ({
@@ -40,15 +95,27 @@ const GameRoom = () => {
     }));
   };
 
-  const handleNext = () => {
+  const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      const nextIndex = currentQuestionIndex + 1;
+      socketRef.current.send(
+        JSON.stringify({
+          type: "advance_question",
+          question_index: nextIndex,
+        })
+      );
     }
   };
 
-  const handlePrevious = () => {
+  const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      const prevIndex = currentQuestionIndex - 1;
+      socketRef.current.send(
+        JSON.stringify({
+          type: "advance_question",
+          question_index: prevIndex,
+        })
+      );
     }
   };
 
@@ -86,22 +153,24 @@ const GameRoom = () => {
         ))}
       </div>
 
-      <div className="flex justify-between mt-6">
-        <button
-          onClick={handlePrevious}
-          disabled={currentQuestionIndex === 0}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-        >
-          {t("Previous")}
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={currentQuestionIndex === questions.length - 1}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-        >
-          {t("Next")}
-        </button>
-      </div>
+      {isHost && (
+        <div className="flex justify-between mt-6">
+          <button
+            onClick={handlePreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          >
+            {t("Previous")}
+          </button>
+          <button
+            onClick={handleNextQuestion}
+            disabled={currentQuestionIndex === questions.length - 1}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          >
+            {t("Next")}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

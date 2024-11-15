@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'accounts',
     'drf_yasg',
     'quiz',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -156,3 +157,15 @@ CSRF_COOKIE_HTTPONLY = False  # Deve ser False para que o frontend possa acessá
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
+
+ASGI_APPLICATION = 'core.asgi.application'
+
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}

@@ -3,7 +3,7 @@ const path = require("path");
 
 const localesPath = "./public/i18n";
 const tempPath = "./temp/translations";
-const languages = ["en", "pt-BR"];
+const languages = ["pt-BR"];
 const namespace = "translation";
 
 languages.forEach((lng) => {
