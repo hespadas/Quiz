@@ -1,7 +1,7 @@
 # quiz/views.py
 
 from rest_framework import filters, generics, status
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -103,3 +103,26 @@ class UserInfoView(APIView):
             'email': user.email,
         }
         return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def submit_quiz(request, quiz_id):
+    try:
+        answers = request.data.get('answers', {})
+        quiz = Quiz.objects.prefetch_related('questions__options').get(id=quiz_id)
+        questions = quiz.questions.all()
+        score = 0
+        total = questions.count()
+
+        for question in questions:
+            correct_option = question.options.filter(is_correct=True).first()
+            user_answer_id = answers.get(str(question.id))
+            if user_answer_id and str(correct_option.id) == str(user_answer_id):
+                score += 1
+
+        return Response({'score': score, 'total': total})
+    except Quiz.DoesNotExist:
+        return Response({'error': 'Quiz not found.'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)

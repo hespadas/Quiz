@@ -6,7 +6,7 @@ import authService from "../../services/authService";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isAuth, setIsAuth] = useState(false); // Start as false
+  const [isAuth, setIsAuth] = useState(false);
   const [user, setUser] = useState(null);
   const [tokenExpiry, setTokenExpiry] = useState(null);
   const location = useLocation();
@@ -24,10 +24,8 @@ export const AuthProvider = ({ children }) => {
         await authService.checkAuth();
         setIsAuth(true);
 
-        // Inserted Code Starts Here
         const response = await authService.getUserInfo();
         setUser(response);
-        // Inserted Code Ends Here
 
         const accessTokenExp = localStorage.getItem("access_token_exp");
         if (accessTokenExp) {

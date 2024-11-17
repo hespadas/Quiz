@@ -9,6 +9,7 @@ from .views import (
     QuizListView,
     QuizUpdateView,
     UserInfoView,
+    submit_quiz,
 )
 
 app_name = "quiz"
@@ -24,4 +25,5 @@ urlpatterns = [
     path('game_rooms/create/', GameCreateView.as_view(), name='game_room_create'),
     path('game_rooms/<str:code>/', GameRetrieveView.as_view(), name='game_room_detail'),
     path('user-info/', UserInfoView.as_view(), name='user_info'),
+    path('quizzes/submit/<int:quiz_id>/', submit_quiz, name='submit_quiz'),
 ]

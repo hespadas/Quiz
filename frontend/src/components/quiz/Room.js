@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import axios from "../../services/axiosConfig";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -13,17 +19,46 @@ const GameRoom = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [error, setError] = useState(null);
+  const [score, setScore] = useState(null); // Initialize score state
   const socketRef = useRef(null);
+
+  // Define submitQuiz using useCallback
+  const submitQuiz = useCallback(async () => {
+    console.log(
+      `[Frontend] User ${user?.username} submitting answers`,
+      selectedOptions
+    );
+    try {
+      const response = await axios.post(
+        `/quizzes/submit/${gameRoom.quiz.id}/`,
+        { answers: selectedOptions }
+      );
+      console.log(
+        `[Frontend] User ${user?.username} received score:`,
+        response.data
+      );
+      setScore(response.data);
+    } catch (error) {
+      console.error(
+        `[Frontend] User ${user?.username} failed to submit answers`,
+        error
+      );
+      toast.error(t("Error submitting quiz."));
+    }
+  }, [gameRoom, selectedOptions, t, user?.username]);
 
   useEffect(() => {
     const fetchGameRoom = async () => {
       try {
-        console.log("Fetching game room with code:", code);
+        console.log("[Frontend] Fetching game room with code:", code);
         const response = await axios.get(`/game_rooms/${code}/`);
-        console.log("Game room data received:", response.data);
+        console.log("[Frontend] Game room data received:", response.data);
         setGameRoom(response.data);
       } catch (err) {
-        console.error("Error fetching game room:", err.response || err.message);
+        console.error(
+          "[Frontend] Error fetching game room:",
+          err.response || err.message
+        );
         setError(t("Error fetching game room."));
         toast.error(t("Error fetching game room."));
       }
@@ -38,33 +73,42 @@ const GameRoom = () => {
       const backendHost = "localhost";
       const backendPort = "8000";
       const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/`;
-      console.log("Establishing WebSocket connection to:", wsUrl);
+      console.log("[Frontend] Establishing WebSocket connection to:", wsUrl);
 
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
-        console.log("WebSocket connected");
+        console.log("[Frontend] WebSocket connected");
       };
 
       ws.onmessage = (event) => {
-        console.log("WebSocket message received:", event.data);
+        console.log("[Frontend] WebSocket message received:", event.data);
         try {
           const data = JSON.parse(event.data);
-          if (data.type === "question_advanced") {
+          console.log("[Frontend] Parsed data:", data);
+
+          if (data.type === "quiz_finished") {
+            console.log("[Frontend] Handling 'quiz_finished'");
+            submitQuiz();
+          } else if (data.type === "question_advanced") {
+            console.log("[Frontend] Handling 'question_advanced'");
             setCurrentQuestionIndex(data.question_index);
-            console.log("Question advanced to index:", data.question_index);
+          } else if (data.type === "test_message") {
+            console.log("[Frontend] Received test message:", data.content);
+          } else {
+            console.log("[Frontend] Unknown message type:", data.type);
           }
         } catch (err) {
-          console.error("Error parsing WebSocket message:", err);
+          console.error("[Frontend] Error parsing WebSocket message:", err);
         }
       };
 
       ws.onclose = (event) => {
-        console.log("WebSocket disconnected:", event);
+        console.log("[Frontend] WebSocket disconnected:", event);
       };
 
       ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.error("[Frontend] WebSocket error:", error);
         toast.error(
           t("WebSocket encountered an error. Please try again later.")
         );
@@ -73,14 +117,32 @@ const GameRoom = () => {
       socketRef.current = ws;
 
       return () => {
-        console.log("Closing WebSocket connection");
+        console.log("[Frontend] Closing WebSocket connection");
         ws.close();
       };
     }
-  }, [gameRoom, code, t]);
+  }, [gameRoom, code, t, submitQuiz]);
+
+  useEffect(() => {
+    if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
+      console.log("[Frontend] Quiz is finished based on question index");
+      submitQuiz();
+    }
+  }, [currentQuestionIndex, gameRoom, submitQuiz]);
 
   if (!gameRoom) {
     return <p>{error || t("Loading game room...")}</p>;
+  }
+
+  if (score !== null) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded">
+        <h2 className="text-2xl font-semibold mb-4">
+          {t("Your Score")}: {score.score} {t("out of")} {score.total}
+        </h2>
+        {/* Optionally display more details or a summary */}
+      </div>
+    );
   }
 
   const questions = gameRoom.quiz.questions;
@@ -93,23 +155,39 @@ const GameRoom = () => {
       ...prevSelectedOptions,
       [currentQuestion.id]: optionId,
     }));
+    console.log(
+      "[Frontend] Option selected:",
+      optionId,
+      "for question:",
+      currentQuestion.id
+    );
   };
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       const nextIndex = currentQuestionIndex + 1;
+      console.log("[Frontend] Host advancing to question index:", nextIndex);
       socketRef.current.send(
         JSON.stringify({
           type: "advance_question",
           question_index: nextIndex,
         })
       );
+    } else {
+      console.log("[Frontend] Host is finishing the quiz");
+      socketRef.current.send(
+        JSON.stringify({
+          type: "quiz_finished",
+        })
+      );
+      submitQuiz();
     }
   };
 
   const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       const prevIndex = currentQuestionIndex - 1;
+      console.log("[Frontend] Host returning to question index:", prevIndex);
       socketRef.current.send(
         JSON.stringify({
           type: "advance_question",
@@ -142,6 +220,7 @@ const GameRoom = () => {
           <button
             key={option.id}
             onClick={() => handleOptionSelect(option.id)}
+            disabled={score !== null}
             className={`p-2 rounded ${
               selectedOptions[currentQuestion.id] === option.id
                 ? "bg-blue-500 text-white"
@@ -157,17 +236,21 @@ const GameRoom = () => {
         <div className="flex justify-between mt-6">
           <button
             onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0}
+            disabled={currentQuestionIndex === 0 || score !== null}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {t("Previous")}
           </button>
           <button
             onClick={handleNextQuestion}
-            disabled={currentQuestionIndex === questions.length - 1}
+            disabled={
+              currentQuestionIndex >= questions.length || score !== null
+            }
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
-            {t("Next")}
+            {currentQuestionIndex < questions.length - 1
+              ? t("Next")
+              : t("Submit")}
           </button>
         </div>
       )}
