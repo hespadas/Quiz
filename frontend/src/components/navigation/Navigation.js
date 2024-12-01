@@ -39,6 +39,9 @@ export function Navigation() {
               >
                 {t("Join Game Room")}
               </Link>
+              <Link to="/lobby" className="text-white hover:text-gray-400">
+                {t("Join Lobby")}
+              </Link>
             </>
           )}
         </div>
