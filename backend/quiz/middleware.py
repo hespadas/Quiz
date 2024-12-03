@@ -22,26 +22,15 @@ def get_user_from_token(token_key):
 
 class TokenAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
-        token = None
-        if 'cookies' in scope:
-            cookies = scope['cookies']
-            token = cookies.get('access_token')
-
-        if token:
-            scope['user'] = await get_user_from_token(token)
-        else:
-            scope['user'] = AnonymousUser()
-
-        logger.info(f"WebSocket connected user: {scope['user']}")
-        return await super().__call__(scope, receive, send)
-
-
-class CookieMiddleware(BaseMiddleware):
-    async def __call__(self, scope, receive, send):
         headers = dict(scope["headers"])
+        cookies = {}
         if b"cookie" in headers:
             cookies = parse_cookie(headers[b"cookie"].decode())
-            scope["cookies"] = cookies
+        token = cookies.get("access_token")
+
+        if token:
+            scope["user"] = await get_user_from_token(token)
         else:
-            scope["cookies"] = {}
+            scope["user"] = AnonymousUser()
+
         return await super().__call__(scope, receive, send)
