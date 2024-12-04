@@ -1,14 +1,15 @@
 import os
 
 import django
-import quiz.routing
-from channels.auth import AuthMiddlewareStack
-from channels.routing import ProtocolTypeRouter, URLRouter
-from django.core.asgi import get_asgi_application
-from quiz.middleware import TokenAuthMiddleware
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
+
+import quiz.routing # noqa
+from channels.auth import AuthMiddlewareStack # noqa
+from channels.routing import ProtocolTypeRouter, URLRouter # noqa
+from django.core.asgi import get_asgi_application # noqa
+from quiz.middleware import TokenAuthMiddleware # noqa
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

@@ -12,10 +12,13 @@ import Detail from "./components/quiz/Detail";
 import Edit from "./components/quiz/Edit";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import CreateGameRoom from "./components/quiz/CreateRoom";
-import JoinGameRoom from "./components/quiz/Join";
-import GameRoom from "./components/quiz/Room";
-import Lobby from "./components/quiz/Lobby";
+import CreateGameRoom from "./components/game/CreateRoom";
+import JoinGameRoom from "./components/game/Join";
+import Lobby from "./components/lobby/Lobby";
+
+function GameRoom() {
+  return null;
+}
 
 function App() {
   return (

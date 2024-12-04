@@ -35,7 +35,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logger.error(f"Error during WebSocket disconnection: {e}")
 
-    async def receive(self, text_data):
+    async def receive(self, text_data=None, bytes_data=None):
         try:
             data = json.loads(text_data)
             message_type = data.get('type')

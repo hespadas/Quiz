@@ -11,11 +11,11 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { AuthContext } from "../auth/AuthContext";
 
-const GameRoom = () => {
+const Game = () => {
   const { t } = useTranslation();
   const { code } = useParams();
   const { user } = useContext(AuthContext);
-  const [gameRoom, setGameRoom] = useState(null);
+  const [gameRoom, setGame] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [error, setError] = useState(null);
@@ -48,12 +48,12 @@ const GameRoom = () => {
   }, [gameRoom, selectedOptions, t, user?.username]);
 
   useEffect(() => {
-    const fetchGameRoom = async () => {
+    const fetchGame = async () => {
       try {
         console.log("[Frontend] Fetching game room with code:", code);
         const response = await axios.get(`/game_rooms/${code}/`);
         console.log("[Frontend] Game room data received:", response.data);
-        setGameRoom(response.data);
+        setGame(response.data);
       } catch (err) {
         console.error(
           "[Frontend] Error fetching game room:",
@@ -64,7 +64,7 @@ const GameRoom = () => {
       }
     };
 
-    fetchGameRoom();
+    fetchGame();
   }, [code, t]);
 
   useEffect(() => {
@@ -236,16 +236,14 @@ const GameRoom = () => {
         <div className="flex justify-between mt-6">
           <button
             onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0 || score !== null}
+            disabled={currentQuestionIndex === 0 || false}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {t("Previous")}
           </button>
           <button
             onClick={handleNextQuestion}
-            disabled={
-              currentQuestionIndex >= questions.length || score !== null
-            }
+            disabled={currentQuestionIndex >= questions.length || false}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {currentQuestionIndex < questions.length - 1
@@ -258,4 +256,4 @@ const GameRoom = () => {
   );
 };
 
-export default GameRoom;
+export default Game;

@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { Navigation } from "../Navigation";
 import { AuthContext } from "../../auth/AuthContext";
-import { useTranslation } from "react-i18next";
 
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
