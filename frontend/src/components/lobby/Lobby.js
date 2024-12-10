@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useContext } from "react";
+import React, { useEffect, useRef, useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AuthContext } from "../auth/AuthContext"; // Adjust import path as needed
+import { AuthContext } from "../auth/AuthContext";
 
 const Lobby = () => {
   const { t } = useTranslation();
-  const { user } = useContext(AuthContext); // Assuming AuthContext provides user info
+  const { user } = useContext(AuthContext);
   const socketRef = useRef(null);
+  const [connectedUsers, setConnectedUsers] = useState([]);
 
   useEffect(() => {
     const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
@@ -23,7 +24,10 @@ const Lobby = () => {
 
     ws.onmessage = (event) => {
       console.log("Message from WebSocket:", event.data);
-      // Handle incoming messages as needed
+      const data = JSON.parse(event.data);
+      if (data.type === "user_list") {
+        setConnectedUsers(data.users);
+      }
     };
 
     ws.onclose = (event) => {
@@ -42,7 +46,17 @@ const Lobby = () => {
     };
   }, []);
 
-  return <div>{t("Connected to Static Lobby")}</div>;
+  return (
+    <div>
+      <h2>{t("Connected to Static Lobby")}</h2>
+      <h3>{t("Current Users")}:</h3>
+      <ul>
+        {connectedUsers.map((username) => (
+          <li key={username}>{username}</li>
+        ))}
+      </ul>
+    </div>
+  );
 };
 
 export default Lobby;
