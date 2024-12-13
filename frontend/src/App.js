@@ -14,12 +14,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateGameRoom from "./components/game/CreateRoom";
 import JoinGameRoom from "./components/game/Join";
+import GameRoom from "./components/game/Game";
 import Lobby from "./components/lobby/Lobby";
 import CreateLobby from "./components/lobby/CreateLobby";
-
-function GameRoom() {
-  return null;
-}
 
 function App() {
   return (
