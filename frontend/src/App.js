@@ -15,6 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 import CreateGameRoom from "./components/game/CreateRoom";
 import JoinGameRoom from "./components/game/Join";
 import Lobby from "./components/lobby/Lobby";
+import CreateLobby from "./components/lobby/CreateLobby";
 
 function GameRoom() {
   return null;
@@ -39,6 +40,7 @@ function App() {
           <Route path="/game_rooms/join" element={<JoinGameRoom />} />
           <Route path="/game_rooms/:code/" element={<GameRoom />} />
           <Route path="/lobby/" element={<Lobby />} />
+          <Route path="/lobby/create" element={<CreateLobby />} />
         </Routes>
       </AuthProvider>
     </Router>

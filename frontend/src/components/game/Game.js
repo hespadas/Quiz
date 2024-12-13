@@ -19,10 +19,9 @@ const Game = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [error, setError] = useState(null);
-  const [score, setScore] = useState(null); // Initialize score state
+  const [score, setScore] = useState(null);
   const socketRef = useRef(null);
 
-  // Define submitQuiz using useCallback
   const submitQuiz = useCallback(async () => {
     console.log(
       `[Frontend] User ${user?.username} submitting answers`,

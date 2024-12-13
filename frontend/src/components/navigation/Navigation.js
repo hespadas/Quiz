@@ -42,6 +42,12 @@ export function Navigation() {
               <Link to="/lobby" className="text-white hover:text-gray-400">
                 {t("Join Lobby")}
               </Link>
+              <Link
+                to="/lobby/create"
+                className="text-white hover:text-gray-400"
+              >
+                {t("Create Lobby")}
+              </Link>
             </>
           )}
         </div>

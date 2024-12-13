@@ -12,6 +12,7 @@ from .models.game import Game
 from .models.quiz import Quiz
 from .serializers.category_serializer import CategorySerializer
 from .serializers.game_room_serializer import GameCreateSerializer, GameSerializer
+from .serializers.lobby_serializer import LobbyCreateSerializer
 from .serializers.quiz_serializer import QuizSerializer
 
 
@@ -126,3 +127,16 @@ def submit_quiz(request, quiz_id):
         return Response({'error': 'Quiz not found.'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=400)
+
+
+@permission_classes([IsAuthenticated])
+class LobbyCreateView(generics.CreateAPIView):
+    serializer_class = LobbyCreateSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.context['request'] = request
+        serializer.is_valid(raise_exception=True)
+        game_room = serializer.save()
+        data = GameSerializer(game_room).data
+        return Response(data, status=status.HTTP_201_CREATED)
