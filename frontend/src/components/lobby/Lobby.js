@@ -7,6 +7,7 @@ const Lobby = () => {
   const { user } = useContext(AuthContext);
   const socketRef = useRef(null);
   const [connectedUsers, setConnectedUsers] = useState([]);
+  const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
     const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
@@ -24,9 +25,22 @@ const Lobby = () => {
 
     ws.onmessage = (event) => {
       console.log("Message from WebSocket:", event.data);
-      const data = JSON.parse(event.data);
-      if (data.type === "user_list") {
-        setConnectedUsers(data.users);
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "user_list") {
+          setConnectedUsers(data.users);
+        } else if (data.type === "host_status") {
+          setIsHost(data.isHost);
+          if (data.isHost) {
+            console.log("You are the host.");
+          } else {
+            console.log("You are not the host.");
+          }
+        } else if (data.type === "game_started") {
+          console.log("Game has started!");
+        }
+      } catch (err) {
+        console.error("Error parsing WebSocket message:", err);
       }
     };
 
@@ -44,7 +58,14 @@ const Lobby = () => {
       console.log("Closing WebSocket connection to static lobby");
       ws.close();
     };
-  }, []);
+  }, [user.username]);
+
+  const startGame = () => {
+    if (socketRef.current && isHost) {
+      socketRef.current.send(JSON.stringify({ type: "start_game" }));
+      console.log("Game start message sent.");
+    }
+  };
 
   return (
     <div>
@@ -55,6 +76,15 @@ const Lobby = () => {
           <li key={username}>{username}</li>
         ))}
       </ul>
+
+      {isHost && (
+        <button
+          onClick={startGame}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          {t("Start Game")}
+        </button>
+      )}
     </div>
   );
 };

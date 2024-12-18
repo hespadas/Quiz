@@ -16,7 +16,7 @@ def get_user_from_token(token_key):
         user_id = valid_data["user_id"]
         return User.objects.get(id=user_id)
     except Exception as e:
-        logger.error(f"Token validation failed: {e}")
+        logger.error(f"TokenAuthMiddleware: Token validation failed: {e}")
         return AnonymousUser()
 
 
@@ -26,11 +26,15 @@ class TokenAuthMiddleware(BaseMiddleware):
         cookies = {}
         if b"cookie" in headers:
             cookies = parse_cookie(headers[b"cookie"].decode())
+            logger.debug(f"TokenAuthMiddleware: Cookies parsed: {cookies}")
         token = cookies.get("access_token")
 
         if token:
-            scope["user"] = await get_user_from_token(token)
+            user = await get_user_from_token(token)
+            scope["user"] = user
+            logger.info(f"TokenAuthMiddleware: Authenticated user {user.username}")
         else:
             scope["user"] = AnonymousUser()
+            logger.info("TokenAuthMiddleware: No access_token found. User set to AnonymousUser.")
 
         return await super().__call__(scope, receive, send)
