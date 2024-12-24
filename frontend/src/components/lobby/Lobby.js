@@ -13,12 +13,7 @@ const Lobby = () => {
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [isHost, setIsHost] = useState(false);
 
-  useEffect(() => {
-    if (!code) {
-      toast.error(t("Invalid lobby code."));
-      return;
-    }
-
+  const createWebSocket = () => {
     const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
     const backendHost = "localhost";
     const backendPort = "8000";
@@ -42,7 +37,6 @@ const Lobby = () => {
           setIsHost(data.isHost);
         } else if (data.type === "game_started") {
           console.log("Game started!");
-          // Possibly navigate to a game screen
         }
       } catch (err) {
         console.error("Error parsing message:", err);
@@ -60,9 +54,25 @@ const Lobby = () => {
 
     socketRef.current = ws;
 
+    return ws;
+  };
+
+  useEffect(() => {
+    if (!code) {
+      toast.error(t("Invalid lobby code."));
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      createWebSocket();
+    }, 300);
+
     return () => {
-      console.log("Closing WebSocket for lobby code:", code);
-      ws.close();
+      clearTimeout(timeoutId);
+      if (socketRef.current) {
+        console.log("Closing WebSocket for lobby code:", code);
+        socketRef.current.close();
+      }
     };
   }, [code, t]);
 
