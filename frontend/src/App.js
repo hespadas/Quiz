@@ -36,7 +36,7 @@ function App() {
           <Route path="/game_rooms/create" element={<CreateGameRoom />} />
           <Route path="/game_rooms/join" element={<JoinGameRoom />} />
           <Route path="/game_rooms/:code/" element={<GameRoom />} />
-          <Route path="/lobby/" element={<Lobby />} />
+          <Route path="/lobby/:code" element={<Lobby />} />
           <Route path="/lobby/create" element={<CreateLobby />} />
         </Routes>
       </AuthProvider>
