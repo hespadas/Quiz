@@ -17,6 +17,7 @@ import JoinGameRoom from "./components/game/Join";
 import GameRoom from "./components/game/Game";
 import Lobby from "./components/lobby/Lobby";
 import CreateLobby from "./components/lobby/CreateLobby";
+import JoinLobby from "./components/lobby/JoinLobby";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path="/game_rooms/create" element={<CreateGameRoom />} />
           <Route path="/game_rooms/join" element={<JoinGameRoom />} />
           <Route path="/game_rooms/:code/" element={<GameRoom />} />
+          <Route path="/lobby/join" element={<JoinLobby />} />
           <Route path="/lobby/:code" element={<Lobby />} />
           <Route path="/lobby/create" element={<CreateLobby />} />
         </Routes>

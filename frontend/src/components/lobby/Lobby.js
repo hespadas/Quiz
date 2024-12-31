@@ -1,85 +1,90 @@
 import React, { useEffect, useRef, useContext, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AuthContext } from "../auth/AuthContext";
 import { toast } from "react-toastify";
 
 const Lobby = () => {
   const { t } = useTranslation();
-  const { user } = useContext(AuthContext);
   const { code } = useParams();
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
   const socketRef = useRef(null);
-
   const [connectedUsers, setConnectedUsers] = useState([]);
-  const [isHost, setIsHost] = useState(false);
-
-  const createWebSocket = () => {
-    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const backendHost = "localhost";
-    const backendPort = "8000";
-    const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/lobby/${code}/`;
-
-    console.log("Connecting to WebSocket:", wsUrl);
-
-    const ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      console.log("WebSocket connected to lobby with code:", code);
-    };
-
-    ws.onmessage = (event) => {
-      console.log("Lobby message:", event.data);
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "user_list") {
-          setConnectedUsers(data.users);
-        } else if (data.type === "host_status") {
-          setIsHost(data.isHost);
-        } else if (data.type === "game_started") {
-          console.log("Game started!");
-        }
-      } catch (err) {
-        console.error("Error parsing message:", err);
-      }
-    };
-
-    ws.onclose = (event) => {
-      console.log("WebSocket disconnected:", event);
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-      toast.error(t("WebSocket encountered an error."));
-    };
-
-    socketRef.current = ws;
-
-    return ws;
-  };
+  const [hostUsername, setHostUsername] = useState(null);
 
   useEffect(() => {
     if (!code) {
-      toast.error(t("Invalid lobby code."));
+      toast.error("Invalid lobby code");
       return;
     }
 
     const timeoutId = setTimeout(() => {
-      createWebSocket();
+      const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+      const backendHost = "localhost";
+      const backendPort = "8000";
+      const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/lobby/${code}/`;
+
+      console.log("Connecting to:", wsUrl);
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log("WebSocket open for code:", code);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          switch (data.type) {
+            case "user_list":
+              setConnectedUsers(data.users);
+              setHostUsername(data.host);
+              break;
+            case "game_started":
+              console.log("Game started, quiz_id:", data.quiz_id);
+              navigate(`/quiz/${data.quiz_id || 1}/question/1`);
+              break;
+            default:
+              console.warn("Unhandled message:", data);
+          }
+        } catch (err) {
+          console.error("Error parsing ws message:", err);
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.error("WebSocket error:", err);
+        toast.error("WebSocket encountered an error.");
+      };
+
+      ws.onclose = (e) => {
+        console.log("WebSocket closed:", e);
+      };
+
+      socketRef.current = ws;
     }, 300);
 
     return () => {
       clearTimeout(timeoutId);
       if (socketRef.current) {
-        console.log("Closing WebSocket for lobby code:", code);
         socketRef.current.close();
       }
     };
-  }, [code, t]);
+  }, [code, navigate]);
+
+  const isHost = hostUsername === user?.username;
 
   const handleStartGame = () => {
-    if (socketRef.current && isHost) {
-      socketRef.current.send(JSON.stringify({ type: "start_game" }));
-      console.log("Game start message sent.");
+    if (!isHost) return;
+
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({
+          type: "start_game",
+          quiz_id: 123,
+        })
+      );
     }
   };
 
@@ -91,9 +96,13 @@ const Lobby = () => {
       <h3>{t("Connected Users")}:</h3>
       <ul>
         {connectedUsers.map((username) => (
-          <li key={username}>{username}</li>
+          <li key={username}>
+            {username}
+            {username === hostUsername && " (Host)"}
+          </li>
         ))}
       </ul>
+
       {isHost && <button onClick={handleStartGame}>{t("Start Game")}</button>}
     </div>
   );

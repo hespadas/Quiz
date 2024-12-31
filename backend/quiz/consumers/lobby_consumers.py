@@ -9,142 +9,124 @@ logger = logging.getLogger(__name__)
 
 
 class LobbyConsumer(AsyncWebsocketConsumer):
-    connected_users = set()
-    host_user = None
+    lobbies = {}
 
     async def connect(self):
-        user = self.scope['user']
-        lobby_group_name = "static_lobby"
+        self.code = self.scope['url_route']['kwargs']['code']
+        if self.code not in self.__class__.lobbies:
+            self.__class__.lobbies[self.code] = {
+                "users": set(),
+                "host": None,
+            }
 
+        user = self.scope['user']
         if user.is_authenticated:
-            LobbyConsumer.connected_users.add(user.username)
-            logger.info(f"User {user.username} connected to static lobby.")
+            await self.accept()
+            logger.info(f"User {user.username} connected to lobby code {self.code}")
 
             await self.channel_layer.group_add(
-                lobby_group_name,
+                self.code,
                 self.channel_name
             )
 
-            await self.accept()
+            self.__class__.lobbies[self.code]["users"].add(user.username)
 
-            if LobbyConsumer.host_user is None:
-                LobbyConsumer.host_user = user.username
-                logger.info(f"User {LobbyConsumer.host_user} has been assigned as the host.")
+            if self.__class__.lobbies[self.code]["host"] is None:
+                logger.info(f"Lobby {self.code}: Assigning host to {user.username}")
+                self.__class__.lobbies[self.code]["host"] = user.username
 
             await self.send_user_list()
-
-            is_host = user.username == LobbyConsumer.host_user
-            await self.send_host_status(is_host)
         else:
-            logger.warning("Unauthenticated user attempted to connect. Connection closed.")
+            logger.warning("Unauthenticated user attempted to connect, closing.")
             await self.close()
-
-    async def send_user_list(self):
-        lobby_group_name = "static_lobby"
-        logger.debug(f"Broadcasting user list: {LobbyConsumer.connected_users}, Host: {LobbyConsumer.host_user}")
-
-        await self.channel_layer.group_send(
-            lobby_group_name,
-            {
-                "type": "user_list_message",
-                "users": list(LobbyConsumer.connected_users),
-                "host": LobbyConsumer.host_user
-            }
-        )
-
-    async def user_list_message(self, event):
-        users = event["users"]
-        host = event["host"]
-        logger.debug(f"Sending user list to client: {users}, Host: {host}")
-
-        await self.send(text_data=json.dumps({
-            "type": "user_list",
-            "users": users,
-            "host": host
-        }))
 
     async def disconnect(self, close_code):
         user = self.scope['user']
-        lobby_group_name = "static_lobby"
-
-        if user.is_authenticated and user.username in LobbyConsumer.connected_users:
-            LobbyConsumer.connected_users.remove(user.username)
-            logger.info(f"User {user.username} disconnected from static lobby.")
-
+        if user.is_authenticated:
             await self.channel_layer.group_discard(
-                lobby_group_name,
+                self.code,
                 self.channel_name
             )
 
-            if user.username == LobbyConsumer.host_user:
-                if LobbyConsumer.connected_users:
-                    LobbyConsumer.host_user = next(iter(LobbyConsumer.connected_users))
-                    logger.info(f"New host assigned: {LobbyConsumer.host_user}")
+            lobby_data = self.__class__.lobbies.get(self.code)
+            if lobby_data and user.username in lobby_data["users"]:
+                lobby_data["users"].remove(user.username)
+                logger.info(f"User {user.username} disconnected from {self.code}")
+
+                if lobby_data["host"] == user.username:
+                    if lobby_data["users"]:
+                        new_host = next(iter(lobby_data["users"]))
+                        lobby_data["host"] = new_host
+                        logger.info(f"Lobby {self.code}: New host is {new_host}")
+                    else:
+                        lobby_data["host"] = None
+                        logger.info(f"Lobby {self.code}: No users left, host is None.")
+
+                if not lobby_data["users"]:
+                    logger.info(f"Lobby {self.code}: cleaning up empty lobby.")
+                    del self.__class__.lobbies[self.code]
                 else:
-                    LobbyConsumer.host_user = None
-                    logger.info("No users left in the lobby. Host reset to None.")
-
-            await self.send_user_list()
-
-            if LobbyConsumer.host_user:
-                await self.channel_layer.group_send(
-                    lobby_group_name,
-                    {
-                        "type": "host_change",
-                        "host": LobbyConsumer.host_user
-                    }
-                )
-
-    async def host_change(self, event):
-        host = event["host"]
-        logger.debug(f"Host change detected. New Host: {host}")
-
-        is_host = self.scope['user'].username == host if host else False
-
-        await self.send(text_data=json.dumps({
-            "type": "host_status",
-            "isHost": is_host
-        }))
-
-    async def send_host_status(self, is_host):
-        logger.debug(f"Sending host status to user. Is Host: {is_host}")
-
-        await self.send(text_data=json.dumps({
-            "type": "host_status",
-            "isHost": is_host
-        }))
+                    await self.send_user_list()
 
     async def receive(self, text_data=None, bytes_data=None):
         user = self.scope['user']
-
         if not user.is_authenticated:
-            logger.warning("Unauthenticated user sent a message. Ignoring.")
+            logger.warning("Unauthenticated user sent a message, ignoring.")
             return
 
         try:
             data = json.loads(text_data)
             message_type = data.get('type')
 
-            logger.debug(f"Received message type: {message_type} with data: {data}")
-
-            if message_type == "start_game" and user.username == LobbyConsumer.host_user:
-                logger.info(f"Host {user.username} initiated the game.")
-                await self.channel_layer.group_send(
-                    "static_lobby",
-                    {
-                        "type": "game_started",
-                    }
-                )
+            if message_type == "start_game":
+                lobby_data = self.__class__.lobbies[self.code]
+                if lobby_data["host"] == user.username:
+                    logger.info(f"Lobby {self.code}: {user.username} started the game.")
+                    await self.channel_layer.group_send(
+                        self.code,
+                        {
+                            "type": "game_started",
+                            "quiz_id": data.get("quiz_id"),
+                        }
+                    )
+                else:
+                    logger.warning(f"User {user.username} is not the host, ignoring start_game.")
             else:
-                logger.warning(f"Unauthorized or unknown message type: {message_type}")
+                logger.warning(f"Lobby {self.code}: Unknown message type: {message_type}")
         except json.JSONDecodeError as e:
-            logger.error(f"JSON decode error: {e}")
+            logger.error(f"Lobby {self.code}: JSON decode error: {e}")
         except Exception as e:
-            logger.error(f"Error processing received message: {e}")
+            logger.error(f"Lobby {self.code}: Error processing received message: {e}")
 
     async def game_started(self, event):
-        logger.info("Broadcasting 'game_started' to all clients.")
-
-        await self.send(text_data=json.dumps({
+        logger.info(f"Lobby {self.code}: Broadcasting 'game_started' to all.")
+        await self.send_json({
             "type": "game_started",
-        }))
+            "quiz_id": event.get("quiz_id"),
+        })
+
+    async def send_user_list(self):
+        lobby_data = self.__class__.lobbies[self.code]
+        users_list = list(lobby_data["users"])
+        host_user = lobby_data["host"]
+
+        logger.debug(f"Lobby {self.code}: Broadcasting user list {users_list}, host={host_user}")
+
+        await self.channel_layer.group_send(
+            self.code,
+            {
+                "type": "user_list_message",
+                "users": users_list,
+                "host": host_user
+            }
+        )
+
+    async def user_list_message(self, event):
+        await self.send_json({
+            "type": "user_list",
+            "users": event["users"],
+            "host": event["host"]
+        })
+
+    async def send_json(self, content):
+        await self.send(text_data=json.dumps(content))
