@@ -43,7 +43,7 @@ const Lobby = () => {
               break;
             case "game_started":
               console.log("Game started, quiz_id:", data.quiz_id);
-              navigate(`/quiz/${data.quiz_id || 1}/question/1`);
+              navigate(`/game_rooms/${data.quiz_id}/`);
               break;
             default:
               console.warn("Unhandled message:", data);
@@ -82,7 +82,7 @@ const Lobby = () => {
       socketRef.current.send(
         JSON.stringify({
           type: "start_game",
-          quiz_id: 123,
+          quiz_id: 1,
         })
       );
     }

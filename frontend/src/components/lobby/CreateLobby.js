@@ -31,7 +31,7 @@ const CreateLobby = () => {
       });
       const gameRoom = response.data;
       toast.success(t("Game room created! Code: ") + gameRoom.code);
-      navigate(`/game_rooms/${gameRoom.code}/`);
+      navigate(`/lobby/${gameRoom.code}/`);
     } catch (error) {
       console.error("Error creating game room:", error);
       toast.error(t("Error creating game room."));
