@@ -34,8 +34,6 @@ function App() {
           <Route path="/quizzes" element={<List />} />
           <Route path="/quizzes/:id" element={<Detail />} />
           <Route path="/quiz/edit/:id/" element={<Edit />} />
-          <Route path="/game_rooms/create" element={<CreateGameRoom />} />
-          <Route path="/game_rooms/join" element={<JoinGameRoom />} />
           <Route path="/game_rooms/:code/" element={<GameRoom />} />
           <Route path="/lobby/join" element={<JoinLobby />} />
           <Route path="/lobby/:code" element={<Lobby />} />

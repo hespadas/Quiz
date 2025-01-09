@@ -27,18 +27,6 @@ export function Navigation() {
                 {t("Quiz List")}
               </Link>
               <Link
-                to="/game_rooms/create"
-                className="text-white hover:text-gray-400"
-              >
-                {t("Create Game Room")}
-              </Link>
-              <Link
-                to="/game_rooms/join"
-                className="text-white hover:text-gray-400"
-              >
-                {t("Join Game Room")}
-              </Link>
-              <Link
                 to="/lobby/join/"
                 className="text-white hover:text-gray-400"
               >
