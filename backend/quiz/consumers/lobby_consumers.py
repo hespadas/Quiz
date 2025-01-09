@@ -68,13 +68,17 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             if lobby_data:
                 if user.username in lobby_data["users"]:
                     lobby_data["users"].remove(user.username)
-                    logger.info(f"User {user.username} disconnected from code {self.code}")
+                    logger.info(f"User {user.username} disconnected from {self.code}")
 
                 if not lobby_data["users"]:
-                    del self.__class__.lobbies[self.code]
                     logger.info(f"Lobby {self.code} empty, cleaning up.")
-
-                await self.send_user_list()
+                    del self.__class__.lobbies[self.code]
+                else:
+                    await self.send_user_list(safe=True)
+            else:
+                logger.debug(
+                    f"disconnect called for code={self.code}, but no lobby_data found. Possibly removed already."
+                )
 
     async def receive(self, text_data=None, bytes_data=None):
         user = self.scope['user']
@@ -113,10 +117,18 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             "quiz_id": event.get("quiz_id"),
         })
 
-    async def send_user_list(self):
+    async def send_user_list(self, safe=False):
+        """Broadcast an updated user list. If safe=True, skip if code is missing."""
+        if self.code not in self.__class__.lobbies:
+            if not safe:
+                raise KeyError(f"No lobby data for code {self.code}")
+            else:
+                logger.debug(f"send_user_list: skipping because {self.code} was not found in lobbies.")
+            return
+
         lobby_data = self.__class__.lobbies[self.code]
         users_list = list(lobby_data["users"])
-        current_host = lobby_data["real_host"]
+        current_host = lobby_data.get("host") or lobby_data.get("real_host")
 
         await self.channel_layer.group_send(
             self.code,

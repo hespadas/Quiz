@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useContext, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AuthContext } from "../auth/AuthContext";
+import axios from "../../services/axiosConfig";
 import { toast } from "react-toastify";
 
 const Lobby = () => {
@@ -11,8 +12,25 @@ const Lobby = () => {
   const { user } = useContext(AuthContext);
 
   const socketRef = useRef(null);
+
+  const [gameInfo, setGameInfo] = useState(null);
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [hostUsername, setHostUsername] = useState(null);
+
+  useEffect(() => {
+    const fetchGame = async () => {
+      try {
+        const response = await axios.get(`/game_rooms/${code}/`);
+        // e.g. { code: 'ABC123', quiz: { id: 5, ... }, host: 'espadas', ... }
+        setGameInfo(response.data);
+      } catch (err) {
+        console.error("Error loading lobby data:", err);
+        toast.error("Failed to load lobby.");
+      }
+    };
+
+    if (code) fetchGame();
+  }, [code]);
 
   useEffect(() => {
     if (!code) {
@@ -78,20 +96,30 @@ const Lobby = () => {
   const handleStartGame = () => {
     if (!isHost) return;
 
+    const chosenQuizId = gameInfo?.quiz?.id;
+    if (!chosenQuizId) {
+      console.warn("No quiz ID found in gameInfo, cannot start.");
+      return;
+    }
+
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(
         JSON.stringify({
           type: "start_game",
-          quiz_id: 1,
+          quiz_id: chosenQuizId,
         })
       );
     }
   };
 
+  if (!gameInfo) {
+    return <p>{t("Loading lobby...")}</p>;
+  }
+
   return (
     <div>
       <h2>
-        {t("Lobby Code")}: {code}
+        {t("Lobby Code")}: {gameInfo.code}
       </h2>
       <h3>{t("Connected Users")}:</h3>
       <ul>
