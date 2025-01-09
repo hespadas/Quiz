@@ -61,7 +61,7 @@ const Lobby = () => {
               break;
             case "game_started":
               console.log("Game started, quiz_id:", data.quiz_id);
-              navigate(`/game_rooms/${data.quiz_id}/`);
+              navigate(`/game_rooms/${code}/`);
               break;
             default:
               console.warn("Unhandled message:", data);
