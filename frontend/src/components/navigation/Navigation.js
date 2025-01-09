@@ -5,15 +5,21 @@ import { useTranslation } from "react-i18next";
 
 export function Navigation() {
   const { t } = useTranslation();
-  const { isAuth } = useContext(AuthContext);
+  const { isAuth, user } = useContext(AuthContext); // <--- get 'user' here
   const location = useLocation();
 
   return (
     <div className="bg-gray-900 text-white">
       <nav className="container mx-auto flex justify-between items-center p-4">
-        <div className="flex space-x-4">
+        <div className="flex space-x-4 items-center">
           {isAuth && (
             <>
+              {/* If we have a user object, show username: */}
+              {user && (
+                <span className="text-sm font-semibold mr-4">
+                  {t("Hello")}, {user.username}!
+                </span>
+              )}
               <Link to="/" className="text-white hover:text-gray-400">
                 {t("home")}
               </Link>
@@ -41,6 +47,7 @@ export function Navigation() {
             </>
           )}
         </div>
+
         <div>
           {isAuth ? (
             <Link to="/logout" className="text-white hover:text-gray-400">
