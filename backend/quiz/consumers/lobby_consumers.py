@@ -33,7 +33,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         if self.code not in self.__class__.lobbies:
             self.__class__.lobbies[self.code] = {
                 "users": set(),
-                "host": None,
                 "real_host": None,
             }
 
@@ -51,12 +50,10 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             lobby_data["real_host"] = real_host_username
             logger.info(f"Lobby {self.code}: real_host set to {real_host_username}")
 
-        if user.username == real_host_username:
-            logger.info(f"Lobby {self.code}: {user.username} is the real host, reassigning host.")
-            lobby_data["host"] = user.username
-        elif lobby_data["host"] is None:
-            logger.info(f"Lobby {self.code}: No host, assigning {user.username} as temp host.")
-            lobby_data["host"] = user.username
+        if user.username != real_host_username:
+            logger.info(f"Lobby {self.code}: {user.username} is not the host.")
+        else:
+            logger.info(f"Lobby {self.code}: {user.username} is the host.")
 
         await self.channel_layer.group_add(self.code, self.channel_name)
         await self.send_user_list()
@@ -76,21 +73,50 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 if not lobby_data["users"]:
                     del self.__class__.lobbies[self.code]
                     logger.info(f"Lobby {self.code} empty, cleaning up.")
-                else:
-                    if lobby_data["host"] == user.username:
-                        if lobby_data["real_host"] in lobby_data["users"]:
-                            lobby_data["host"] = lobby_data["real_host"]
-                        else:
-                            new_temp_host = next(iter(lobby_data["users"]))
-                            lobby_data["host"] = new_temp_host
-                            logger.info(f"Lobby {self.code}: new temp host is {new_temp_host}")
 
-                    await self.send_user_list()
+                await self.send_user_list()
+
+    async def receive(self, text_data=None, bytes_data=None):
+        user = self.scope['user']
+        if not user.is_authenticated:
+            logger.warning("Unauthenticated user sent a message, ignoring.")
+            return
+
+        try:
+            data = json.loads(text_data)
+            message_type = data.get('type')
+
+            if message_type == "start_game":
+                lobby_data = self.__class__.lobbies[self.code]
+                if user.username == lobby_data["real_host"]:
+                    logger.info(f"Lobby {self.code}: Start game triggered by {user.username}")
+                    await self.channel_layer.group_send(
+                        self.code,
+                        {
+                            "type": "game_started",
+                            "quiz_id": data.get("quiz_id"),
+                        }
+                    )
+                else:
+                    logger.warning(f"Lobby {self.code}: Unauthorized start_game attempt by {user.username}")
+            else:
+                logger.warning(f"Lobby {self.code}: Unknown message_type {message_type}")
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON decode error: {e}")
+        except Exception as e:
+            logger.error(f"Error processing received message: {e}")
+
+    async def game_started(self, event):
+        logger.info(f"Lobby {self.code}: Broadcasting 'game_started' to all.")
+        await self.send_json({
+            "type": "game_started",
+            "quiz_id": event.get("quiz_id"),
+        })
 
     async def send_user_list(self):
         lobby_data = self.__class__.lobbies[self.code]
         users_list = list(lobby_data["users"])
-        current_host = lobby_data["host"]
+        current_host = lobby_data["real_host"]
 
         await self.channel_layer.group_send(
             self.code,
