@@ -12,24 +12,20 @@ const Lobby = () => {
   const { user } = useContext(AuthContext);
 
   const socketRef = useRef(null);
-
   const [gameInfo, setGameInfo] = useState(null);
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [hostUsername, setHostUsername] = useState(null);
 
   useEffect(() => {
-    const fetchGame = async () => {
-      try {
-        const response = await axios.get(`/game_rooms/${code}/`);
-        // e.g. { code: 'ABC123', quiz: { id: 5, ... }, host: 'espadas', ... }
-        setGameInfo(response.data);
-      } catch (err) {
-        console.error("Error loading lobby data:", err);
-        toast.error("Failed to load lobby.");
-      }
-    };
-
-    if (code) fetchGame();
+    if (code) {
+      axios
+        .get(`/game_rooms/${code}/`)
+        .then((response) => setGameInfo(response.data))
+        .catch((err) => {
+          console.error("Error loading lobby data:", err);
+          toast.error("Failed to load lobby.");
+        });
+    }
   }, [code]);
 
   useEffect(() => {
@@ -89,7 +85,7 @@ const Lobby = () => {
         socketRef.current.close();
       }
     };
-  }, [code, navigate]);
+  }, [code, navigate, t]);
 
   const isHost = hostUsername === user?.username;
 
@@ -113,25 +109,37 @@ const Lobby = () => {
   };
 
   if (!gameInfo) {
-    return <p>{t("Loading lobby...")}</p>;
+    return (
+      <p className="text-center text-gray-500 mt-4">{t("Loading lobby...")}</p>
+    );
   }
 
   return (
-    <div>
-      <h2>
-        {t("Lobby Code")}: {gameInfo.code}
+    <div className="max-w-xl mx-auto p-6 bg-white shadow-md rounded mt-10">
+      <h2 className="text-2xl font-bold mb-4">
+        {t("Lobby Code")}:{" "}
+        <span className="text-blue-600">{gameInfo.code}</span>
       </h2>
-      <h3>{t("Connected Users")}:</h3>
-      <ul>
+      <h3 className="text-xl font-semibold mb-2">{t("Connected Users")}:</h3>
+      <ul className="list-disc pl-5 mb-6">
         {connectedUsers.map((username) => (
-          <li key={username}>
-            {username}
-            {username === hostUsername && " (Host)"}
+          <li key={username} className="text-gray-800">
+            {username}{" "}
+            {username === hostUsername && (
+              <span className="font-bold text-green-600">(Host)</span>
+            )}
           </li>
         ))}
       </ul>
 
-      {isHost && <button onClick={handleStartGame}>{t("Start Game")}</button>}
+      {isHost && (
+        <button
+          onClick={handleStartGame}
+          className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+        >
+          {t("Start Game")}
+        </button>
+      )}
     </div>
   );
 };
