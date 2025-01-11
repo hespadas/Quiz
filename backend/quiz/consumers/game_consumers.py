@@ -1,5 +1,6 @@
 
 
+import asyncio
 import json
 import logging
 
@@ -9,78 +10,73 @@ logger = logging.getLogger(__name__)
 
 
 class GameRoomConsumer(AsyncWebsocketConsumer):
+    scores = {}
+
     async def connect(self):
-        try:
-            self.room_code = self.scope['url_route']['kwargs']['code']
-            self.room_group_name = f"game_room_{self.room_code}"
+        self.room_code = self.scope['url_route']['kwargs']['code']
+        self.room_group_name = f"game_room_{self.room_code}"
 
-            await self.channel_layer.group_add(
-                self.room_group_name,
-                self.channel_name
-            )
+        if self.room_code not in self.__class__.scores:
+            self.__class__.scores[self.room_code] = {}
 
-            await self.accept()
-            logger.info(f"WebSocket connected to room: {self.room_group_name}")
-        except KeyError as e:
-            logger.error(f"Error during WebSocket connection: {e}")
-            await self.close()
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+        logger.info(f"WebSocket connected to room: {self.room_group_name}")
 
     async def disconnect(self, close_code):
-        try:
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
-            logger.info(f"WebSocket disconnected from room: {self.room_group_name}")
-        except Exception as e:
-            logger.error(f"Error during WebSocket disconnection: {e}")
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+        logger.info(f"WebSocket disconnected from room: {self.room_group_name}")
 
     async def receive(self, text_data=None, bytes_data=None):
-        try:
-            data = json.loads(text_data)
-            message_type = data.get('type')
-            logger.info(f"Received message type: {message_type} with data: {data}")
+        data = json.loads(text_data)
+        message_type = data.get('type')
 
-            if message_type == 'advance_question':
-                await self.channel_layer.group_send(
-                    self.room_group_name,
-                    {
-                        'type': 'question_advanced',
-                        'question_index': data['question_index'],
-                    }
-                )
-                logger.info(f"Broadcasting 'question_advanced' to index: {data['question_index']}")
+        if message_type == 'advance_question':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {'type': 'question_advanced', 'question_index': data['question_index']}
+            )
 
-            elif message_type == 'quiz_finished':
-                await self.channel_layer.group_send(
-                    self.room_group_name,
-                    {
-                        'type': 'quiz_finished',
-                    }
-                )
-                logger.info("Broadcasted 'quiz_finished' to group")
+        elif message_type == 'user_score':
+            username = data["username"]
+            score = data["score"]
+            total = data["total"]
+            if username:
+                self.__class__.scores.setdefault(self.room_code, {})[username] = {
+                    "score": score,
+                    "total": total
+                }
 
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON decode error: {e}")
-        except Exception as e:
-            logger.error(f"Error processing received message: {e}")
+            logger.info(f"Updated scores for room {self.room_code}: {self.__class__.scores}")
+
+        elif message_type == 'quiz_finished':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {"type": "quiz_finished"}
+            )
+            logger.info("Broadcasted 'quiz_finished' to group")
 
     async def question_advanced(self, event):
-        try:
-            question_index = event['question_index']
-            await self.send(text_data=json.dumps({
-                'type': 'question_advanced',
-                'question_index': question_index,
-            }))
-            logger.info(f"Sent 'question_advanced' to WebSocket: {question_index}")
-        except Exception as e:
-            logger.error(f"Error sending 'question_advanced' to WebSocket: {e}")
+        question_index = event['question_index']
+        await self.send(text_data=json.dumps({
+            'type': 'question_advanced',
+            'question_index': question_index,
+        }))
 
     async def quiz_finished(self, event):
-        try:
-            await self.send(text_data=json.dumps({
-                'type': 'quiz_finished',
-            }))
-            logger.info("Sent 'quiz_finished' to WebSocket")
-        except Exception as e:
-            logger.error(f"Error sending 'quiz_finished' to WebSocket: {e}")
+        await self.send(text_data=json.dumps({"type": "quiz_finished"}))
+        await asyncio.sleep(5)
+        room_scores = self.__class__.scores.get(self.room_code, {})
+        all_scores = [
+            {"username": username, "score": stats["score"], "total": stats["total"]}
+            for username, stats in room_scores.items()
+        ]
+        await self.send(text_data=json.dumps({"type": "scores_update", "scores": all_scores}))
+        logger.info(f"Sent scores_update: {all_scores}")

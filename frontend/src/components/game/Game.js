@@ -21,6 +21,7 @@ const Game = () => {
   const [error, setError] = useState(null);
   const [score, setScore] = useState(null);
   const socketRef = useRef(null);
+  const [finalScores, setFinalScores] = useState(null);
 
   const submitQuiz = useCallback(async () => {
     console.log(
@@ -37,6 +38,17 @@ const Game = () => {
         response.data
       );
       setScore(response.data);
+
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        socketRef.current.send(
+          JSON.stringify({
+            type: "user_score",
+            username: user.username,
+            score: response.data.score,
+            total: response.data.total,
+          })
+        );
+      }
     } catch (error) {
       console.error(
         `[Frontend] User ${user?.username} failed to submit answers`,
@@ -84,7 +96,6 @@ const Game = () => {
         try {
           const data = JSON.parse(event.data);
           console.log("[Frontend] Parsed data:", data);
-
           if (data.type === "quiz_finished") {
             console.log("[Frontend] Handling 'quiz_finished'");
             submitQuiz();
@@ -93,6 +104,9 @@ const Game = () => {
             setCurrentQuestionIndex(data.question_index);
           } else if (data.type === "test_message") {
             console.log("[Frontend] Received test message:", data.content);
+          } else if (data.type === "scores_update") {
+            console.log("[Frontend] Updating finalScores:", data.scores);
+            setFinalScores(data.scores);
           } else {
             console.log("[Frontend] Unknown message type:", data.type);
           }
@@ -137,13 +151,17 @@ const Game = () => {
     return <p>{error || t("Loading game room...")}</p>;
   }
 
-  if (score !== null) {
+  if (score !== null && finalScores) {
     return (
-      <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded">
-        <h2 className="text-2xl font-semibold mb-4">
-          {t("Your Score")}: {score.score} {t("out of")} {score.total}
-        </h2>
-        {/* Optionally display more details or a summary */}
+      <div>
+        <h2>Scoreboard</h2>
+        <ul>
+          {finalScores.map((item) => (
+            <li key={item.username}>
+              {item.username}: {item.score}/{item.total}
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }
