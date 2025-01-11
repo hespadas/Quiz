@@ -62,7 +62,6 @@ const Game = () => {
         toast.error(t("Error fetching game room."));
       }
     };
-
     fetchGame();
   }, [code, t]);
 
@@ -108,9 +107,14 @@ const Game = () => {
 
       ws.onerror = (error) => {
         console.error("[Frontend] WebSocket error:", error);
-        toast.error(
-          t("WebSocket encountered an error. Please try again later.")
-        );
+        if (
+          ws.readyState !== WebSocket.CLOSING &&
+          ws.readyState !== WebSocket.CLOSED
+        ) {
+          toast.error(
+            "WebSocket encountered an error. Please try again later."
+          );
+        }
       };
 
       socketRef.current = ws;
