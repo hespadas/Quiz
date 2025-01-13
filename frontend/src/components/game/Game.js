@@ -40,6 +40,7 @@ const Game = () => {
       setScore(response.data);
 
       if (socketRef.current?.readyState === WebSocket.OPEN) {
+        console.log(`[Frontend] Sending user_score for ${user.username}`);
         socketRef.current.send(
           JSON.stringify({
             type: "user_score",
