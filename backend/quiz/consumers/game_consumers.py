@@ -20,8 +20,10 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             self.__class__.scores[self.room_code] = {}
         if self.room_code not in self.__class__.user_count:
             self.__class__.user_count[self.room_code] = 0
-
+        if self.room_code not in self.__class__.expected_submissions:
+            self.__class__.expected_submissions[self.room_code] = 0
         self.__class__.user_count[self.room_code] += 1
+        self.__class__.expected_submissions[self.room_code] += 1
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -30,8 +32,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
         logger.info(f"WebSocket connected to room: {self.room_group_name}")
-
-        self.__class__.expected_submissions[self.room_code] = self.__class__.user_count[self.room_code]
 
     async def disconnect(self, close_code):
         if self.room_code in self.__class__.user_count:
@@ -67,8 +67,9 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     "total": total
                 }
 
-            if self.room_code in self.expected_submissions:
+            if self.room_code in self.__class__.expected_submissions:
                 self.__class__.expected_submissions[self.room_code] -= 1
+
             logger.info(
                 f"Updated scores for room {self.room_code}: {self.__class__.scores}"
             )
@@ -112,16 +113,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(interval)
             time_waited += interval
 
-        room_scores = self.__class__.scores.get(self.room_code, {})
-        all_scores = [
-            {"username": user, "score": data["score"], "total": data["total"]}
-            for user, data in room_scores.items()
-        ]
-        await self.send(text_data=json.dumps({
-            "type": "scores_update",
-            "scores": all_scores
-        }))
-        logger.info(f"Sent final scores_update: {all_scores}")
+        await self.broadcast_scores()
 
     async def broadcast_scores(self):
         room_scores = self.__class__.scores.get(self.room_code, {})
