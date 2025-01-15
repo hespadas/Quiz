@@ -18,18 +18,18 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
 
         if self.room_code not in self.__class__.scores:
             self.__class__.scores[self.room_code] = {}
+
         if self.room_code not in self.__class__.user_count:
             self.__class__.user_count[self.room_code] = 0
+        self.__class__.user_count[self.room_code] += 1
+
         if self.room_code not in self.__class__.expected_submissions:
             self.__class__.expected_submissions[self.room_code] = 0
-        self.__class__.user_count[self.room_code] += 1
-        self.__class__.expected_submissions[self.room_code] += 1
 
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
-
         await self.accept()
         logger.info(f"WebSocket connected to room: {self.room_group_name}")
 
@@ -51,12 +51,14 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         message_type = data.get('type')
 
         if message_type == 'advance_question':
+            self.__class__.expected_submissions[self.room_code] = self.__class__.user_count.get(self.room_code, 0)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {'type': 'question_advanced', 'question_index': data['question_index']}
             )
 
         elif message_type == 'user_score':
+            logger.info(f"Received user_score message with data: {data}")
             username = data["username"]
             score = data["score"]
             total = data["total"]
@@ -70,19 +72,17 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             if self.room_code in self.__class__.expected_submissions:
                 self.__class__.expected_submissions[self.room_code] -= 1
 
-            logger.info(
-                f"Updated scores for room {self.room_code}: {self.__class__.scores}"
-            )
+            logger.info(f"expected_submissions after user_score: {self.__class__.expected_submissions[self.room_code]}")
 
             if self.__class__.expected_submissions[self.room_code] <= 0:
                 await self.broadcast_scores()
 
         elif message_type == 'quiz_finished':
+            logger.info("quiz_finished message received")
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {"type": "quiz_finished"}
             )
-            logger.info("Broadcasted 'quiz_finished' to group")
 
     async def question_advanced(self, event):
         question_index = event['question_index']
@@ -105,7 +105,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                 f"expected_submissions={current_expected}, "
                 f"user_count={self.__class__.user_count.get(self.room_code, 0)}"
             )
-
             if current_expected <= 0:
                 logger.info("All participants have submitted. Breaking early.")
                 break
@@ -121,8 +120,8 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             {"username": user, "score": data["score"], "total": data["total"]}
             for user, data in room_scores.items()
         ]
+        logger.info(f"Broadcasting scores_update: {all_scores}")
         await self.send(text_data=json.dumps({
             "type": "scores_update",
             "scores": all_scores
         }))
-        logger.info(f"Broadcasted scores_update: {all_scores}")
