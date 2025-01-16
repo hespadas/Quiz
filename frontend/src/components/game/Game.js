@@ -81,8 +81,8 @@ const Game = () => {
   useEffect(() => {
     if (gameRoom) {
       const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const backendHost = "localhost";
-      const backendPort = "8000";
+      const backendHost = process.env.REACT_APP_BACKEND_HOST;
+      const backendPort = process.env.REACT_APP_BACKEND_PORT;
       const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/`;
       console.log("[Frontend] Establishing WebSocket connection to:", wsUrl);
 
