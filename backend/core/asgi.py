@@ -2,7 +2,7 @@ import os
 
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings.development')
 django.setup()
 
 import quiz.routing # noqa
