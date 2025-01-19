@@ -38,12 +38,14 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 @permission_classes([IsAuthenticated])
 class QuizListView(generics.ListAPIView):
-    queryset = Quiz.objects.all().order_by('-created_at')
     serializer_class = QuizSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description', 'category__name']
     ordering_fields = ['created_at', 'title']
+
+    def get_queryset(self):
+        return Quiz.objects.filter(created_by=self.request.user).order_by('-created_at')
 
 
 @permission_classes([IsAuthenticated])
