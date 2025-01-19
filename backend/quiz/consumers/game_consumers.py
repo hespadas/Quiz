@@ -41,7 +41,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         t = data.get('type')
         if t == 'advance_question':
             self.__class__.expected_submissions[self.room_code] = self.__class__.user_count[self.room_code]
-            self.__class__.submitted_users[self.room_code] = set()
+            self.__class__.submitted_users[self.room_code].clear()
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {'type': 'question_advanced', 'question_index': data['question_index']}
@@ -81,4 +81,16 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
     async def broadcast_scores(self):
         room_scores = self.__class__.scores.get(self.room_code, {})
         all_scores = [{"username": u, "score": d["score"], "total": d["total"]} for u, d in room_scores.items()]
-        await self.send(text_data=json.dumps({"type": "scores_update", "scores": all_scores}))
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "scores_update_message",
+                "scores": all_scores
+            }
+        )
+
+    async def scores_update_message(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "scores_update",
+            "scores": event["scores"]
+        }))
