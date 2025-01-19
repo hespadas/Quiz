@@ -10,9 +10,11 @@ class Question(models.Model):
     ]
 
     text = models.CharField(max_length=500)
-    quiz = models.ForeignKey(Quiz, related_name='questions', on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, related_name='questions',
+                             on_delete=models.CASCADE)
     order = models.PositiveIntegerField()
-    question_type = models.CharField(max_length=2, choices=QUESTION_TYPE_CHOICES, default='MC')
+    question_type = models.CharField(max_length=2, default='MC',
+                                     choices=QUESTION_TYPE_CHOICES)
 
     def __str__(self):
         return self.text

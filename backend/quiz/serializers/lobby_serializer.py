@@ -11,8 +11,8 @@ class GameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['id', 'code', 'quiz', 'host', 'participants', 'created_at']
-        read_only_fields = ['code', 'host', 'participants', 'created_at']
+        fields = ['id', 'code', 'quiz', 'host', 'created_at']
+        read_only_fields = ['code', 'host', 'created_at']
 
 
 class LobbyCreateSerializer(serializers.ModelSerializer):

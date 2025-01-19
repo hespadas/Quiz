@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 from quiz.models.category import Category
@@ -18,28 +19,33 @@ class CategoryModelTest(TestCase):
 
 class QuizModelTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='12345')
         self.category = Category.objects.create(name="Literature")
         self.quiz = Quiz.objects.create(
             title="Classic Literature Quiz",
             description="A quiz on classic literature.",
-            category=self.category
+            category=self.category,
+            created_by=self.user
         )
 
     def test_quiz_creation(self):
         assert self.quiz.title == "Classic Literature Quiz", "Quiz title mismatch"
         assert self.quiz.description == "A quiz on classic literature.", "Quiz description mismatch"
         assert self.quiz.category == self.category, "Quiz category mismatch"
+        assert self.quiz.created_by == self.user, "Quiz created_by mismatch"
         assert isinstance(self.quiz, Quiz), "quiz should be an instance of Quiz"
         assert str(self.quiz) == "Classic Literature Quiz", "String representation mismatch"
 
 
 class QuestionModelTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='12345')
         self.category = Category.objects.create(name="History")
         self.quiz = Quiz.objects.create(
             title="World History Quiz",
             description="A quiz on world history.",
-            category=self.category
+            category=self.category,
+            created_by=self.user
         )
         self.question = Question.objects.create(
             quiz=self.quiz,
@@ -60,11 +66,13 @@ class QuestionModelTest(TestCase):
 
 class OptionModelTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='12345')
         self.category = Category.objects.create(name="Geography")
         self.quiz = Quiz.objects.create(
             title="Geography Quiz",
             description="A quiz on geography.",
-            category=self.category
+            category=self.category,
+            created_by=self.user
         )
         self.question = Question.objects.create(
             quiz=self.quiz,

@@ -19,14 +19,17 @@ class QuizSerializer(serializers.ModelSerializer):
     )
     category = CategorySerializer(read_only=True)
     questions = QuestionSerializer(many=True)
+    created_by = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Quiz
-        fields = ['id', 'title', 'description', 'category', 'category_id', 'created_at', 'questions']
+        fields = ['id', 'title', 'description', 'category', 'category_id', 'created_at',
+                  'questions', 'created_by']
 
-    def create(self, validated_data):  # noqa: PLR6301
+    def create(self, validated_data):
         questions_data = validated_data.pop('questions')
-        quiz = Quiz.objects.create(**validated_data)
+        request = self.context.get('request')
+        quiz = Quiz.objects.create(created_by=request.user, **validated_data)
         for question_data in questions_data:
             options_data = question_data.pop('options')
             question = Question.objects.create(quiz=quiz, **question_data)
