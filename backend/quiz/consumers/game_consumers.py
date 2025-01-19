@@ -2,7 +2,9 @@ import asyncio
 import json
 import logging
 
+from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from quiz.models.game import Game
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +77,10 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                 break
             await asyncio.sleep(interval)
             time_waited += interval
+
         await self.broadcast_scores()
+
+        await self.delete_game_room()
         await self.send(text_data=json.dumps({"type": "quiz_finished"}))
 
     async def broadcast_scores(self):
@@ -94,3 +99,11 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             "type": "scores_update",
             "scores": event["scores"]
         }))
+
+    async def delete_game_room(self):
+        async_delete = sync_to_async(Game.objects.filter(code=self.room_code).delete)
+        try:
+            await async_delete()
+            logger.info(f"Game room {self.room_code} deleted successfully.")
+        except Exception as e:
+            logger.error(f"Failed to delete game room {self.room_code}: {e}")
