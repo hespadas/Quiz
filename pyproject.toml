@@ -33,6 +33,7 @@ addopts = '-p no:warnings'
 
 [tool.ruff]
 line-length = 120
+ignore = ["PLC0414"]
 
 [tool.ruff.lint]
 preview = true
