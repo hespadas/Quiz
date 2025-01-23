@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "../../services/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -22,6 +22,21 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
   const [availableCategories, setAvailableCategories] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleAddQuestion = useCallback(() => {
+    setQuestions((prevQuestions) => [
+      ...prevQuestions,
+      {
+        text: "",
+        order: prevQuestions.length + 1,
+        question_type: "MC",
+        options: [
+          { text: "", is_correct: false },
+          { text: "", is_correct: false },
+        ],
+      },
+    ]);
+  }, []);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -37,22 +52,7 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
     if (isEdit && (!questions || questions.length === 0)) {
       handleAddQuestion();
     }
-  }, [isEdit, questions]);
-
-  const handleAddQuestion = () => {
-    setQuestions([
-      ...questions,
-      {
-        text: "",
-        order: questions.length + 1,
-        question_type: "MC",
-        options: [
-          { text: "", is_correct: false },
-          { text: "", is_correct: false },
-        ],
-      },
-    ]);
-  };
+  }, [isEdit, questions, handleAddQuestion, t]);
 
   const handleQuestionChange = (index, field, value) => {
     const updatedQuestions = [...questions];
@@ -64,12 +64,10 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
     const updatedQuestions = [...questions];
     if (field === "is_correct" && value === true) {
       updatedQuestions[qIndex].options = updatedQuestions[qIndex].options.map(
-        (option, index) => {
-          return {
-            ...option,
-            is_correct: index === oIndex,
-          };
-        }
+        (option, index) => ({
+          ...option,
+          is_correct: index === oIndex,
+        })
       );
     } else {
       updatedQuestions[qIndex].options[oIndex][field] = value;
@@ -77,27 +75,34 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
 
     setQuestions(updatedQuestions);
   };
+
   const handleAddOption = (qIndex) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[qIndex].options.push({
-      text: "",
-      is_correct: false,
+    setQuestions((prevQuestions) => {
+      const updatedQuestions = [...prevQuestions];
+      updatedQuestions[qIndex].options.push({
+        text: "",
+        is_correct: false,
+      });
+      return updatedQuestions;
     });
-    setQuestions(updatedQuestions);
   };
 
   const handleRemoveOption = (qIndex, oIndex) => {
-    const updatedQuestions = [...questions];
-    if (updatedQuestions[qIndex].options.length > 2) {
-      updatedQuestions[qIndex].options.splice(oIndex, 1);
-      setQuestions(updatedQuestions);
-    }
+    setQuestions((prevQuestions) => {
+      const updatedQuestions = [...prevQuestions];
+      if (updatedQuestions[qIndex].options.length > 2) {
+        updatedQuestions[qIndex].options.splice(oIndex, 1);
+      }
+      return updatedQuestions;
+    });
   };
 
   const handleRemoveQuestion = (qIndex) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions.splice(qIndex, 1);
-    setQuestions(updatedQuestions);
+    setQuestions((prevQuestions) => {
+      const updatedQuestions = [...prevQuestions];
+      updatedQuestions.splice(qIndex, 1);
+      return updatedQuestions;
+    });
   };
 
   const handleSubmit = async (e) => {
