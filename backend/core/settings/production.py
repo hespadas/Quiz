@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -5,8 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = "django-insecure-bpllbcy(ck461@^j7=@2o-*y@xn_zfq0n^x7eh)ax)ucu3nq4f"
 
-DEBUG = True
-ALLOWED_HOSTS = []
+DEBUG = False
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "0.0.0.0").split(",")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -104,7 +105,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=2),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -117,15 +118,21 @@ APPEND_SLASH = False
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://frontend-production-5db1.up.railway.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_COOKIE_SECURE = False  # Altere para True em produção com HTTPS
-SESSION_COOKIE_SECURE = False  # Altere para True em produção com HTTPS
-CSRF_COOKIE_HTTPONLY = False  # Deve ser False para que o frontend possa acessá-lo
+
+CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 3600
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 ASGI_APPLICATION = 'core.asgi.application'
 
@@ -134,7 +141,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [("localhost", 6379)],
+            "hosts": [os.getenv("REDIS_URL", "redis://localhost:6379")],
         },
     },
 }
