@@ -23,9 +23,6 @@ languages.forEach((lng) => {
   Object.keys(newTranslations).forEach((key) => {
     if (!existingTranslations[key]) {
       existingTranslations[key] = newTranslations[key];
-      console.log(
-        `Added new key: "${key}" with value: "${newTranslations[key]}"`
-      );
     }
   });
 
@@ -34,7 +31,4 @@ languages.forEach((lng) => {
     JSON.stringify(existingTranslations, null, 2),
     "utf8"
   );
-  console.log(`Merged translations saved for ${lng} at: ${finalFilePath}`);
 });
-
-console.log("\nTranslation merging completed.");

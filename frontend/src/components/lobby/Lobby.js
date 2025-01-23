@@ -41,12 +41,7 @@ const Lobby = () => {
 
       const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/lobby/${code}/`;
 
-      console.log("Connecting to:", wsUrl);
       const ws = new WebSocket(wsUrl);
-
-      ws.onopen = () => {
-        console.log("WebSocket open for code:", code);
-      };
 
       ws.onmessage = (event) => {
         try {
@@ -57,7 +52,6 @@ const Lobby = () => {
               setHostUsername(data.host);
               break;
             case "game_started":
-              console.log("Game started, quiz_id:", data.quiz_id);
               navigate(`/game_rooms/${code}/`);
               break;
             default:
@@ -71,10 +65,6 @@ const Lobby = () => {
       ws.onerror = (err) => {
         console.error("WebSocket error:", err);
         toast.error("WebSocket encountered an error.");
-      };
-
-      ws.onclose = (e) => {
-        console.log("WebSocket closed:", e);
       };
 
       socketRef.current = ws;
