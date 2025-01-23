@@ -1,1 +1,1 @@
-web: daphne -b 0.0.0.0 -p $PORT core.asgi:application
+web: PYTHONPATH=. daphne -b 0.0.0.0 -p $PORT backend.core.asgi:application
