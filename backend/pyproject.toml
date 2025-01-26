@@ -21,6 +21,8 @@ channels = "^4.1.0"
 channels-redis = "^4.2.0"
 daphne = "^4.1.2"
 python-decouple = "^3.8"
+psycopg = "^3.2.4"
+psycopg2-binary = "^2.9.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
