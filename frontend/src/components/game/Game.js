@@ -67,14 +67,36 @@ const Game = () => {
     fetchGame();
   }, [code, t]);
 
-  useEffect(() => {
-    if (gameRoom) {
+  // Memoriza a função connectWebSocket para evitar recriações em cada renderização
+  const connectWebSocket = useCallback(
+    (attempt = 1) => {
+      if (
+        socketRef.current &&
+        socketRef.current.readyState === WebSocket.OPEN
+      ) {
+        return;
+      }
+
       const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const backendHost = process.env.REACT_APP_BACKEND_HOST;
-      const backendPort = process.env.REACT_APP_BACKEND_PORT;
+      const backendHost = process.env.REACT_APP_BACKEND_HOST || "localhost";
+      const backendPort = process.env.REACT_APP_BACKEND_PORT || "8000";
       const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/`;
 
       const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        socketRef.current = ws;
+        console.info("[WebSocket] Conexão estabelecida.");
+      };
+
+      ws.onerror = (error) => {
+        console.error("[WebSocket] Erro:", error);
+        if (attempt < 5) {
+          setTimeout(() => connectWebSocket(attempt + 1), attempt * 1000);
+        } else {
+          toast.error("WebSocket connection failed after multiple attempts.");
+        }
+      };
 
       ws.onmessage = (event) => {
         try {
@@ -87,35 +109,79 @@ const Game = () => {
             setFinalScores(data.scores);
           }
         } catch (err) {
-          console.error("[Frontend] Error parsing WebSocket message:", err);
+          console.error("[WebSocket] Error parsing message:", err);
         }
       };
 
-      ws.onerror = (error) => {
-        console.error("[Frontend] WebSocket error:", error);
-        if (
-          ws.readyState !== WebSocket.CLOSING &&
-          ws.readyState !== WebSocket.CLOSED
-        ) {
-          toast.error(
-            "WebSocket encountered an error. Please try again later."
-          );
-        }
+      ws.onclose = () => {
+        console.warn(
+          "[WebSocket] Connection closed. Attempting to reconnect..."
+        );
+        setTimeout(() => connectWebSocket(), 2000);
       };
+    },
+    [code, submitQuiz] // Dependências da função
+  );
 
-      socketRef.current = ws;
-
-      return () => {
-        ws.close();
-      };
+  useEffect(() => {
+    if (!socketRef.current && gameRoom) {
+      connectWebSocket();
+      return () => socketRef.current?.close();
     }
-  }, [gameRoom, code, t, submitQuiz]);
+  }, [gameRoom, connectWebSocket]); // Adiciona connectWebSocket nas dependências
 
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
       submitQuiz();
     }
   }, [currentQuestionIndex, gameRoom, submitQuiz]);
+
+  const handleOptionSelect = (optionId) => {
+    setSelectedOptions((prevSelectedOptions) => ({
+      ...prevSelectedOptions,
+      [currentQuestion.id]: optionId,
+    }));
+  };
+
+  const handleNextQuestion = () => {
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      console.error(
+        "[WebSocket] Cannot send message: WebSocket is not connected."
+      );
+      toast.error("Connection lost. Reconnecting...");
+      connectWebSocket();
+      return;
+    }
+
+    if (currentQuestionIndex < questions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      socketRef.current.send(
+        JSON.stringify({
+          type: "advance_question",
+          question_index: nextIndex,
+        })
+      );
+    } else {
+      socketRef.current.send(
+        JSON.stringify({
+          type: "quiz_finished",
+        })
+      );
+      // Removido a chamada direta de submitQuiz() para evitar dupla submissão
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      const prevIndex = currentQuestionIndex - 1;
+      socketRef.current.send(
+        JSON.stringify({
+          type: "advance_question",
+          question_index: prevIndex,
+        })
+      );
+    }
+  };
 
   if (!gameRoom) {
     return <p>{error || t("Loading game room...")}</p>;
@@ -151,44 +217,6 @@ const Game = () => {
   const currentQuestion = questions[currentQuestionIndex];
 
   const isHost = gameRoom.host === user?.username;
-
-  const handleOptionSelect = (optionId) => {
-    setSelectedOptions((prevSelectedOptions) => ({
-      ...prevSelectedOptions,
-      [currentQuestion.id]: optionId,
-    }));
-  };
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      const nextIndex = currentQuestionIndex + 1;
-      socketRef.current.send(
-        JSON.stringify({
-          type: "advance_question",
-          question_index: nextIndex,
-        })
-      );
-    } else {
-      socketRef.current.send(
-        JSON.stringify({
-          type: "quiz_finished",
-        })
-      );
-      submitQuiz();
-    }
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      const prevIndex = currentQuestionIndex - 1;
-      socketRef.current.send(
-        JSON.stringify({
-          type: "advance_question",
-          question_index: prevIndex,
-        })
-      );
-    }
-  };
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded">

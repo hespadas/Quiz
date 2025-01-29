@@ -22,11 +22,11 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             self.__class__.scores[self.room_code] = {}
         if self.room_code not in self.__class__.user_count:
             self.__class__.user_count[self.room_code] = 0
-        self.__class__.user_count[self.room_code] += 1
         if self.room_code not in self.__class__.expected_submissions:
             self.__class__.expected_submissions[self.room_code] = 0
         if self.room_code not in self.__class__.submitted_users:
             self.__class__.submitted_users[self.room_code] = set()
+        self.__class__.user_count[self.room_code] += 1
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
