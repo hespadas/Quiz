@@ -18,16 +18,21 @@ const Game = () => {
   const [gameRoom, setGame] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
+  const selectedOptionsRef = useRef(selectedOptions); // Ref for selectedOptions
   const [error, setError] = useState(null);
   const [score, setScore] = useState(null);
   const socketRef = useRef(null);
   const [finalScores, setFinalScores] = useState(null);
 
+  useEffect(() => {
+    selectedOptionsRef.current = selectedOptions;
+  }, [selectedOptions]);
+
   const submitQuiz = useCallback(async () => {
     try {
       const response = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
-        { answers: selectedOptions }
+        { answers: selectedOptionsRef.current } // Use the ref instead of state
       );
       setScore(response.data);
 
@@ -48,7 +53,7 @@ const Game = () => {
       );
       toast.error(t("Error submitting quiz."));
     }
-  }, [gameRoom, selectedOptions, t, user?.username]);
+  }, [gameRoom, t, user?.username]);
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -67,7 +72,6 @@ const Game = () => {
     fetchGame();
   }, [code, t]);
 
-  // Memoriza a função connectWebSocket para evitar recriações em cada renderização
   const connectWebSocket = useCallback(
     (attempt = 1) => {
       if (
@@ -120,7 +124,7 @@ const Game = () => {
         setTimeout(() => connectWebSocket(), 2000);
       };
     },
-    [code, submitQuiz] // Dependências da função
+    [code, submitQuiz]
   );
 
   useEffect(() => {
@@ -128,7 +132,7 @@ const Game = () => {
       connectWebSocket();
       return () => socketRef.current?.close();
     }
-  }, [gameRoom, connectWebSocket]); // Adiciona connectWebSocket nas dependências
+  }, [gameRoom, connectWebSocket]);
 
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
@@ -167,7 +171,6 @@ const Game = () => {
           type: "quiz_finished",
         })
       );
-      // Removido a chamada direta de submitQuiz() para evitar dupla submissão
     }
   };
 
