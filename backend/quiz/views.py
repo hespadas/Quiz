@@ -20,8 +20,7 @@ from .serializers.quiz_serializer import QuizSerializer
 class HomeView(APIView):
     @staticmethod
     def get(request):
-        content = {"message": "Welcome to home of your new project!"}
-        return Response(content)
+        return Response()
 
 
 @permission_classes([IsAuthenticated])
