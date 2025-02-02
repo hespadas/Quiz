@@ -32,8 +32,14 @@ const Game = () => {
     try {
       const response = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
-        { answers: selectedOptionsRef.current }
+        { answers: selectedOptionsRef.current },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
+
       setScore(response.data);
 
       if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -51,10 +57,19 @@ const Game = () => {
         `[Frontend] User ${user?.username} failed to submit answers`,
         error
       );
-      toast.error(t("Error submitting quiz."));
-    }
-  }, [gameRoom, t, user?.username]);
 
+      if (error.response) {
+        console.error("Backend error:", error.response.data);
+        toast.error(error.response.data.message || t("Error submitting quiz."));
+      } else if (error.request) {
+        console.error("No response from backend:", error.request);
+        toast.error(t("Network error. Please try again."));
+      } else {
+        console.error("Error:", error.message);
+        toast.error(t("An unexpected error occurred."));
+      }
+    }
+  }, [gameRoom, t, user]);
   useEffect(() => {
     const fetchGame = async () => {
       try {

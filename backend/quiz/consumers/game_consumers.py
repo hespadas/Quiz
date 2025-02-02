@@ -135,10 +135,15 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         }))
 
     async def quiz_finished(self, event):
+        self.__class__.expected_submissions[self.room_code] = self.__class__.user_count[self.room_code]
+        self.__class__.submitted_users[self.room_code].clear()
         max_wait_time = 5
         time_waited = 0
         interval = 1
-        logger.info(f"Quiz finished event received in room {self.room_code}. Waiting for submissions...")
+        logger.info(
+            f"Quiz finished event received in room {self.room_code}. "
+            f"Waiting for {self.__class__.expected_submissions[self.room_code]} submissions..."
+        )
 
         while time_waited < max_wait_time:
             if self.__class__.expected_submissions[self.room_code] <= 0:
