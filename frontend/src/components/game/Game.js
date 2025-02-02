@@ -18,7 +18,7 @@ const Game = () => {
   const [gameRoom, setGame] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
-  const selectedOptionsRef = useRef(selectedOptions); // Ref for selectedOptions
+  const selectedOptionsRef = useRef(selectedOptions);
   const [error, setError] = useState(null);
   const [score, setScore] = useState(null);
   const socketRef = useRef(null);
@@ -32,7 +32,7 @@ const Game = () => {
     try {
       const response = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
-        { answers: selectedOptionsRef.current } // Use the ref instead of state
+        { answers: selectedOptionsRef.current }
       );
       setScore(response.data);
 
@@ -90,11 +90,11 @@ const Game = () => {
 
       ws.onopen = () => {
         socketRef.current = ws;
-        console.info("[WebSocket] Conexão estabelecida.");
+        console.info("[WebSocket] Connection established.");
       };
 
       ws.onerror = (error) => {
-        console.error("[WebSocket] Erro:", error);
+        console.error("[WebSocket] Error:", error);
         if (attempt < 5) {
           setTimeout(() => connectWebSocket(attempt + 1), attempt * 1000);
         } else {
@@ -140,14 +140,21 @@ const Game = () => {
     }
   }, [currentQuestionIndex, gameRoom, submitQuiz]);
 
-  const handleOptionSelect = (optionId) => {
-    setSelectedOptions((prevSelectedOptions) => ({
-      ...prevSelectedOptions,
-      [currentQuestion.id]: optionId,
-    }));
-  };
+  const questions = gameRoom?.quiz?.questions || [];
+  const currentQuestion = questions[currentQuestionIndex] || {};
 
-  const handleNextQuestion = () => {
+  const handleOptionSelect = useCallback(
+    (optionId) => {
+      if (!gameRoom || !currentQuestion.id) return;
+      setSelectedOptions((prevSelectedOptions) => ({
+        ...prevSelectedOptions,
+        [currentQuestion.id]: optionId,
+      }));
+    },
+    [gameRoom, currentQuestion]
+  );
+
+  const handleNextQuestion = useCallback(() => {
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
       console.error(
         "[WebSocket] Cannot send message: WebSocket is not connected."
@@ -172,9 +179,9 @@ const Game = () => {
         })
       );
     }
-  };
+  }, [currentQuestionIndex, questions, connectWebSocket]);
 
-  const handlePreviousQuestion = () => {
+  const handlePreviousQuestion = useCallback(() => {
     if (currentQuestionIndex > 0) {
       const prevIndex = currentQuestionIndex - 1;
       socketRef.current.send(
@@ -184,7 +191,7 @@ const Game = () => {
         })
       );
     }
-  };
+  }, [currentQuestionIndex]);
 
   if (!gameRoom) {
     return <p>{error || t("Loading game room...")}</p>;
@@ -216,9 +223,6 @@ const Game = () => {
     );
   }
 
-  const questions = gameRoom.quiz.questions;
-  const currentQuestion = questions[currentQuestionIndex];
-
   const isHost = gameRoom.host === user?.username;
 
   return (
@@ -240,34 +244,35 @@ const Game = () => {
       </div>
 
       <div className="flex flex-col gap-2 my-4">
-        {currentQuestion.options.map((option) => (
-          <button
-            key={option.id}
-            onClick={() => handleOptionSelect(option.id)}
-            disabled={score !== null}
-            className={`p-2 rounded ${
-              selectedOptions[currentQuestion.id] === option.id
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200"
-            }`}
-          >
-            {option.text}
-          </button>
-        ))}
+        {currentQuestion.options &&
+          currentQuestion.options.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => handleOptionSelect(option.id)}
+              disabled={score !== null}
+              className={`p-2 rounded ${
+                selectedOptions[currentQuestion.id] === option.id
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              {option.text}
+            </button>
+          ))}
       </div>
 
       {isHost && (
         <div className="flex justify-between mt-6">
           <button
             onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0 || false}
+            disabled={currentQuestionIndex === 0}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {t("Previous")}
           </button>
           <button
             onClick={handleNextQuestion}
-            disabled={currentQuestionIndex >= questions.length || false}
+            disabled={currentQuestionIndex >= questions.length}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {currentQuestionIndex < questions.length - 1
