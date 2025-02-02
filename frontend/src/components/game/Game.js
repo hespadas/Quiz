@@ -4,6 +4,7 @@ import React, {
   useState,
   useRef,
   useCallback,
+  useMemo,
 } from "react";
 import axios from "../../services/axiosConfig";
 import { useParams } from "react-router-dom";
@@ -155,8 +156,11 @@ const Game = () => {
     }
   }, [currentQuestionIndex, gameRoom, submitQuiz]);
 
-  const questions = gameRoom?.quiz?.questions || [];
-  const currentQuestion = questions[currentQuestionIndex] || {};
+  const questions = useMemo(() => gameRoom?.quiz?.questions || [], [gameRoom]);
+  const currentQuestion = useMemo(
+    () => questions[currentQuestionIndex] || {},
+    [questions, currentQuestionIndex]
+  );
 
   const handleOptionSelect = useCallback(
     (optionId) => {
