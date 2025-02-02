@@ -4,6 +4,7 @@ import React, {
   useState,
   useRef,
   useCallback,
+  useMemo,
 } from "react";
 import axios from "../../services/axiosConfig";
 import { useParams } from "react-router-dom";
@@ -18,17 +19,28 @@ const Game = () => {
   const [gameRoom, setGame] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
+  const selectedOptionsRef = useRef(selectedOptions);
   const [error, setError] = useState(null);
   const [score, setScore] = useState(null);
   const socketRef = useRef(null);
   const [finalScores, setFinalScores] = useState(null);
 
+  useEffect(() => {
+    selectedOptionsRef.current = selectedOptions;
+  }, [selectedOptions]);
+
   const submitQuiz = useCallback(async () => {
     try {
       const response = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
-        { answers: selectedOptions }
+        { answers: selectedOptionsRef.current },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
+
       setScore(response.data);
 
       if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -46,10 +58,19 @@ const Game = () => {
         `[Frontend] User ${user?.username} failed to submit answers`,
         error
       );
-      toast.error(t("Error submitting quiz."));
-    }
-  }, [gameRoom, selectedOptions, t, user?.username]);
 
+      if (error.response) {
+        console.error("Backend error:", error.response.data);
+        toast.error(error.response.data.message || t("Error submitting quiz."));
+      } else if (error.request) {
+        console.error("No response from backend:", error.request);
+        toast.error(t("Network error. Please try again."));
+      } else {
+        console.error("Error:", error.message);
+        toast.error(t("An unexpected error occurred."));
+      }
+    }
+  }, [gameRoom, t, user]);
   useEffect(() => {
     const fetchGame = async () => {
       try {
@@ -67,7 +88,6 @@ const Game = () => {
     fetchGame();
   }, [code, t]);
 
-  // Memoriza a função connectWebSocket para evitar recriações em cada renderização
   const connectWebSocket = useCallback(
     (attempt = 1) => {
       if (
@@ -86,11 +106,11 @@ const Game = () => {
 
       ws.onopen = () => {
         socketRef.current = ws;
-        console.info("[WebSocket] Conexão estabelecida.");
+        console.info("[WebSocket] Connection established.");
       };
 
       ws.onerror = (error) => {
-        console.error("[WebSocket] Erro:", error);
+        console.error("[WebSocket] Error:", error);
         if (attempt < 5) {
           setTimeout(() => connectWebSocket(attempt + 1), attempt * 1000);
         } else {
@@ -120,7 +140,7 @@ const Game = () => {
         setTimeout(() => connectWebSocket(), 2000);
       };
     },
-    [code, submitQuiz] // Dependências da função
+    [code, submitQuiz]
   );
 
   useEffect(() => {
@@ -128,7 +148,7 @@ const Game = () => {
       connectWebSocket();
       return () => socketRef.current?.close();
     }
-  }, [gameRoom, connectWebSocket]); // Adiciona connectWebSocket nas dependências
+  }, [gameRoom, connectWebSocket]);
 
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
@@ -136,14 +156,24 @@ const Game = () => {
     }
   }, [currentQuestionIndex, gameRoom, submitQuiz]);
 
-  const handleOptionSelect = (optionId) => {
-    setSelectedOptions((prevSelectedOptions) => ({
-      ...prevSelectedOptions,
-      [currentQuestion.id]: optionId,
-    }));
-  };
+  const questions = useMemo(() => gameRoom?.quiz?.questions || [], [gameRoom]);
+  const currentQuestion = useMemo(
+    () => questions[currentQuestionIndex] || {},
+    [questions, currentQuestionIndex]
+  );
 
-  const handleNextQuestion = () => {
+  const handleOptionSelect = useCallback(
+    (optionId) => {
+      if (!gameRoom || !currentQuestion.id) return;
+      setSelectedOptions((prevSelectedOptions) => ({
+        ...prevSelectedOptions,
+        [currentQuestion.id]: optionId,
+      }));
+    },
+    [gameRoom, currentQuestion]
+  );
+
+  const handleNextQuestion = useCallback(() => {
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
       console.error(
         "[WebSocket] Cannot send message: WebSocket is not connected."
@@ -167,11 +197,10 @@ const Game = () => {
           type: "quiz_finished",
         })
       );
-      // Removido a chamada direta de submitQuiz() para evitar dupla submissão
     }
-  };
+  }, [currentQuestionIndex, questions, connectWebSocket]);
 
-  const handlePreviousQuestion = () => {
+  const handlePreviousQuestion = useCallback(() => {
     if (currentQuestionIndex > 0) {
       const prevIndex = currentQuestionIndex - 1;
       socketRef.current.send(
@@ -181,7 +210,7 @@ const Game = () => {
         })
       );
     }
-  };
+  }, [currentQuestionIndex]);
 
   if (!gameRoom) {
     return <p>{error || t("Loading game room...")}</p>;
@@ -213,9 +242,6 @@ const Game = () => {
     );
   }
 
-  const questions = gameRoom.quiz.questions;
-  const currentQuestion = questions[currentQuestionIndex];
-
   const isHost = gameRoom.host === user?.username;
 
   return (
@@ -237,34 +263,35 @@ const Game = () => {
       </div>
 
       <div className="flex flex-col gap-2 my-4">
-        {currentQuestion.options.map((option) => (
-          <button
-            key={option.id}
-            onClick={() => handleOptionSelect(option.id)}
-            disabled={score !== null}
-            className={`p-2 rounded ${
-              selectedOptions[currentQuestion.id] === option.id
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200"
-            }`}
-          >
-            {option.text}
-          </button>
-        ))}
+        {currentQuestion.options &&
+          currentQuestion.options.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => handleOptionSelect(option.id)}
+              disabled={score !== null}
+              className={`p-2 rounded ${
+                selectedOptions[currentQuestion.id] === option.id
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              {option.text}
+            </button>
+          ))}
       </div>
 
       {isHost && (
         <div className="flex justify-between mt-6">
           <button
             onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0 || false}
+            disabled={currentQuestionIndex === 0}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {t("Previous")}
           </button>
           <button
             onClick={handleNextQuestion}
-            disabled={currentQuestionIndex >= questions.length || false}
+            disabled={currentQuestionIndex >= questions.length}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {currentQuestionIndex < questions.length - 1
