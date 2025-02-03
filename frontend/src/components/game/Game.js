@@ -29,14 +29,19 @@ const Game = () => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
 
+  const token = user?.token;
+  const username = user?.username;
+
   const submitQuiz = useCallback(async () => {
+    if (!token) return;
+
     try {
       const response = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
         { answers: selectedOptionsRef.current },
         {
           headers: {
-            Authorization: `Bearer ${user.token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -47,7 +52,7 @@ const Game = () => {
         socketRef.current.send(
           JSON.stringify({
             type: "user_score",
-            username: user.username,
+            username, // ou username: user.username,
             score: response.data.score,
             total: response.data.total,
           })
@@ -55,22 +60,13 @@ const Game = () => {
       }
     } catch (error) {
       console.error(
-        `[Frontend] User ${user?.username} failed to submit answers`,
+        `[Frontend] User ${username} failed to submit answers`,
         error
       );
-
-      if (error.response) {
-        console.error("Backend error:", error.response.data);
-        toast.error(error.response.data.message || t("Error submitting quiz."));
-      } else if (error.request) {
-        console.error("No response from backend:", error.request);
-        toast.error(t("Network error. Please try again."));
-      } else {
-        console.error("Error:", error.message);
-        toast.error(t("An unexpected error occurred."));
-      }
+      toast.error(t("An unexpected error occurred."));
     }
-  }, [gameRoom, t, user]);
+  }, [gameRoom, t, token, username]);
+
   useEffect(() => {
     const fetchGame = async () => {
       try {
@@ -99,8 +95,28 @@ const Game = () => {
 
       const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
       const backendHost = process.env.REACT_APP_BACKEND_HOST || "localhost";
-      const backendPort = process.env.REACT_APP_BACKEND_PORT || "8000";
-      const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/`;
+      const backendPort = process.env.REACT_APP_BACKEND_PORT;
+
+      let includePort = false;
+      if (backendPort) {
+        if (
+          (wsProtocol === "wss" && backendPort !== "443") ||
+          (wsProtocol === "ws" && backendPort !== "80")
+        ) {
+          includePort = true;
+        }
+      }
+
+      let wsUrl;
+      if (includePort) {
+        wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/?token=${encodeURIComponent(
+          token
+        )}`;
+      } else {
+        wsUrl = `${wsProtocol}://${backendHost}/ws/game_rooms/${code}/?token=${encodeURIComponent(
+          token
+        )}`;
+      }
 
       const ws = new WebSocket(wsUrl);
 
@@ -140,7 +156,7 @@ const Game = () => {
         setTimeout(() => connectWebSocket(), 2000);
       };
     },
-    [code, submitQuiz]
+    [code, token, submitQuiz]
   );
 
   useEffect(() => {
@@ -242,7 +258,7 @@ const Game = () => {
     );
   }
 
-  const isHost = gameRoom.host === user?.username;
+  const isHost = gameRoom.host === username;
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded">
