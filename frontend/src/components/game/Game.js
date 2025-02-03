@@ -150,6 +150,14 @@ const Game = () => {
     }
   }, [gameRoom, connectWebSocket]);
 
+  const [showNextButton, setShowNextButton] = useState(false);
+
+  useEffect(() => {
+    setShowNextButton(false);
+    const timer = setTimeout(() => setShowNextButton(true), 3000);
+    return () => clearTimeout(timer);
+  }, [currentQuestionIndex]);
+
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
       submitQuiz();
@@ -289,15 +297,18 @@ const Game = () => {
           >
             {t("Previous")}
           </button>
-          <button
-            onClick={handleNextQuestion}
-            disabled={currentQuestionIndex >= questions.length}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-          >
-            {currentQuestionIndex < questions.length - 1
-              ? t("Next")
-              : t("Submit")}
-          </button>
+
+          {showNextButton && (
+            <button
+              onClick={handleNextQuestion}
+              disabled={currentQuestionIndex >= questions.length}
+              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+            >
+              {currentQuestionIndex < questions.length - 1
+                ? t("Next")
+                : t("Submit")}
+            </button>
+          )}
         </div>
       )}
     </div>
