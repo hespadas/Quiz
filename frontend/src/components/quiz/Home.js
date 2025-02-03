@@ -39,13 +39,13 @@ export const Home = () => {
             {t("Quiz List")}
           </button>
           <button
-            onClick={() => navigate("/lobby/create")}
+            onClick={() => navigate("/create-quiz")}
             className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition duration-200"
           >
             {t("Create Quiz")}
           </button>
           <button
-            onClick={() => navigate("/create-quiz")}
+            onClick={() => navigate("/lobby/create")}
             className="w-full py-2 px-4 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition duration-200"
           >
             {t("Create Lobby")}
