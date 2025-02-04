@@ -269,25 +269,25 @@ const Game = () => {
         </h4>
         <p>{currentQuestion.text}</p>
       </div>
-
       <div className="flex flex-col gap-2 my-4">
         {currentQuestion.options &&
           currentQuestion.options.map((option) => (
             <button
               key={option.id}
-              onClick={() => handleOptionSelect(option.id)}
-              disabled={score !== null}
-              className={`p-2 rounded ${
-                selectedOptions[currentQuestion.id] === option.id
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200"
-              }`}
+              onClick={() => !isHost && handleOptionSelect(option.id)}
+              disabled={score !== null || isHost}
+              className={`p-2 rounded 
+          ${
+            !isHost && selectedOptions[currentQuestion.id] === option.id
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200"
+          } 
+          ${isHost ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {option.text}
             </button>
           ))}
       </div>
-
       {isHost && (
         <div className="flex justify-between mt-6">
           <button
