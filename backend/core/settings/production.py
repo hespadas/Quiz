@@ -10,6 +10,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     "backend-production-1fe7.up.railway.app",
+    "frontend-production-5db1.up.railway.app",
 ]
 
 INSTALLED_APPS = [
