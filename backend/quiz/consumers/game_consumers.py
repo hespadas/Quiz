@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 
@@ -16,6 +15,11 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
     user_count = {}
     submitted_users = {}
     room_user_connections = {}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.room_group_name = None
+        self.room_code = None
 
     async def connect(self):
         self.room_code = self.scope['url_route']['kwargs']['code']
@@ -149,7 +153,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             if self.__class__.expected_submissions[self.room_code] <= 0:
                 logger.info(f"All submissions received for room {self.room_code}.")
                 break
-            await asyncio.sleep(interval)
             time_waited += interval
             logger.debug(f"Waiting for submissions in room {self.room_code}. Time waited: {time_waited}s.")
 

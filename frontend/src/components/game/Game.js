@@ -16,22 +16,53 @@ const Game = () => {
   const { t } = useTranslation();
   const { code } = useParams();
   const { user } = useContext(AuthContext);
-  const [gameRoom, setGame] = useState(null);
+  const [gameRoom, setGameRoom] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const selectedOptionsRef = useRef(selectedOptions);
   const [error, setError] = useState(null);
   const [score, setScore] = useState(null);
-  const socketRef = useRef(null);
   const [finalScores, setFinalScores] = useState(null);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
 
+  const handleAxiosError = useCallback(
+    (err, fallbackMessage) => {
+      if (err.response) {
+        console.error("[Backend error]:", err.response.data);
+        toast.error(err.response.data.message || t(fallbackMessage));
+      } else if (err.request) {
+        console.error("[No response from backend]:", err.request);
+        toast.error(t("Network error. Please try again."));
+      } else {
+        console.error("[Error]:", err.message);
+        toast.error(t("An unexpected error occurred."));
+      }
+    },
+    [t]
+  );
+
+  useEffect(() => {
+    const fetchGame = async () => {
+      try {
+        const response = await axios.get(`/game_rooms/${code}/`);
+        setGameRoom(response.data);
+      } catch (err) {
+        console.error("[Frontend] Error fetching game room:", err);
+        setError(t("Error fetching game room."));
+        toast.error(t("Error fetching game room."));
+      }
+    };
+    fetchGame();
+  }, [code, t]);
+
   const submitQuiz = useCallback(async () => {
+    if (!gameRoom) return;
     try {
-      const response = await axios.post(
+      const { data } = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
         { answers: selectedOptionsRef.current },
         {
@@ -41,52 +72,26 @@ const Game = () => {
         }
       );
 
-      setScore(response.data);
+      setScore(data);
 
       if (socketRef.current?.readyState === WebSocket.OPEN) {
         socketRef.current.send(
           JSON.stringify({
             type: "user_score",
             username: user.username,
-            score: response.data.score,
-            total: response.data.total,
+            score: data.score,
+            total: data.total,
           })
         );
       }
-    } catch (error) {
+    } catch (err) {
       console.error(
         `[Frontend] User ${user?.username} failed to submit answers`,
-        error
+        err
       );
-
-      if (error.response) {
-        console.error("Backend error:", error.response.data);
-        toast.error(error.response.data.message || t("Error submitting quiz."));
-      } else if (error.request) {
-        console.error("No response from backend:", error.request);
-        toast.error(t("Network error. Please try again."));
-      } else {
-        console.error("Error:", error.message);
-        toast.error(t("An unexpected error occurred."));
-      }
+      handleAxiosError(err, "Error submitting quiz.");
     }
-  }, [gameRoom, t, user]);
-  useEffect(() => {
-    const fetchGame = async () => {
-      try {
-        const response = await axios.get(`/game_rooms/${code}/`);
-        setGame(response.data);
-      } catch (err) {
-        console.error(
-          "[Frontend] Error fetching game room:",
-          err.response || err.message
-        );
-        setError(t("Error fetching game room."));
-        toast.error(t("Error fetching game room."));
-      }
-    };
-    fetchGame();
-  }, [code, t]);
+  }, [gameRoom, user, handleAxiosError]);
 
   const connectWebSocket = useCallback(
     (attempt = 1) => {
@@ -103,9 +108,9 @@ const Game = () => {
       const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/`;
 
       const ws = new WebSocket(wsUrl);
+      socketRef.current = ws;
 
       ws.onopen = () => {
-        socketRef.current = ws;
         console.info("[WebSocket] Connection established.");
       };
 
@@ -114,19 +119,27 @@ const Game = () => {
         if (attempt < 5) {
           setTimeout(() => connectWebSocket(attempt + 1), attempt * 1000);
         } else {
-          toast.error("WebSocket connection failed after multiple attempts.");
+          toast.error(
+            t("WebSocket connection failed after multiple attempts.")
+          );
         }
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.type === "quiz_finished") {
-            submitQuiz();
-          } else if (data.type === "question_advanced") {
-            setCurrentQuestionIndex(data.question_index);
-          } else if (data.type === "scores_update") {
-            setFinalScores(data.scores);
+          switch (data.type) {
+            case "quiz_finished":
+              submitQuiz();
+              break;
+            case "question_advanced":
+              setCurrentQuestionIndex(data.question_index);
+              break;
+            case "scores_update":
+              setFinalScores(data.scores);
+              break;
+            default:
+              break;
           }
         } catch (err) {
           console.error("[WebSocket] Error parsing message:", err);
@@ -140,13 +153,15 @@ const Game = () => {
         setTimeout(() => connectWebSocket(), 2000);
       };
     },
-    [code, submitQuiz]
+    [code, submitQuiz, t]
   );
 
   useEffect(() => {
-    if (!socketRef.current && gameRoom) {
+    if (gameRoom && !socketRef.current) {
       connectWebSocket();
-      return () => socketRef.current?.close();
+      return () => {
+        socketRef.current?.close();
+      };
     }
   }, [gameRoom, connectWebSocket]);
 
@@ -157,16 +172,13 @@ const Game = () => {
   }, [currentQuestionIndex, gameRoom, submitQuiz]);
 
   const questions = useMemo(() => gameRoom?.quiz?.questions || [], [gameRoom]);
-  const currentQuestion = useMemo(
-    () => questions[currentQuestionIndex] || {},
-    [questions, currentQuestionIndex]
-  );
+  const currentQuestion = questions[currentQuestionIndex] || {};
 
   const handleOptionSelect = useCallback(
     (optionId) => {
       if (!gameRoom || !currentQuestion.id) return;
-      setSelectedOptions((prevSelectedOptions) => ({
-        ...prevSelectedOptions,
+      setSelectedOptions((prev) => ({
+        ...prev,
         [currentQuestion.id]: optionId,
       }));
     },
@@ -175,20 +187,16 @@ const Game = () => {
 
   const handleNextQuestion = useCallback(() => {
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-      console.error(
-        "[WebSocket] Cannot send message: WebSocket is not connected."
-      );
-      toast.error("Connection lost. Reconnecting...");
+      toast.error(t("Connection lost. Reconnecting..."));
       connectWebSocket();
       return;
     }
 
     if (currentQuestionIndex < questions.length - 1) {
-      const nextIndex = currentQuestionIndex + 1;
       socketRef.current.send(
         JSON.stringify({
           type: "advance_question",
-          question_index: nextIndex,
+          question_index: currentQuestionIndex + 1,
         })
       );
     } else {
@@ -198,15 +206,17 @@ const Game = () => {
         })
       );
     }
-  }, [currentQuestionIndex, questions, connectWebSocket]);
+  }, [currentQuestionIndex, questions, connectWebSocket, t]);
 
   const handlePreviousQuestion = useCallback(() => {
-    if (currentQuestionIndex > 0) {
-      const prevIndex = currentQuestionIndex - 1;
+    if (
+      currentQuestionIndex > 0 &&
+      socketRef.current?.readyState === WebSocket.OPEN
+    ) {
       socketRef.current.send(
         JSON.stringify({
           type: "advance_question",
-          question_index: prevIndex,
+          question_index: currentQuestionIndex - 1,
         })
       );
     }
@@ -220,9 +230,10 @@ const Game = () => {
     const filteredScores = finalScores.filter(
       (item) => item.username !== gameRoom.host
     );
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-        <h2 className="text-3xl font-bold mb-6">Scoreboard</h2>
+        <h2 className="text-3xl font-bold mb-6">{t("Scoreboard")}</h2>
         <ul className="w-full max-w-md bg-white rounded-lg shadow p-4 space-y-2">
           {filteredScores.map((item) => (
             <li
@@ -263,21 +274,22 @@ const Game = () => {
       </div>
 
       <div className="flex flex-col gap-2 my-4">
-        {currentQuestion.options &&
-          currentQuestion.options.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => handleOptionSelect(option.id)}
-              disabled={score !== null}
-              className={`p-2 rounded ${
-                selectedOptions[currentQuestion.id] === option.id
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200"
-              }`}
-            >
-              {option.text}
-            </button>
-          ))}
+        {currentQuestion.options?.map((option) => (
+          <button
+            key={option.id}
+            onClick={() => !isHost && handleOptionSelect(option.id)}
+            disabled={score !== null || isHost}
+            className={`p-2 rounded 
+          ${
+            !isHost && selectedOptions[currentQuestion.id] === option.id
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200"
+          } 
+          ${isHost ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            {option.text}
+          </button>
+        ))}
       </div>
 
       {isHost && (
