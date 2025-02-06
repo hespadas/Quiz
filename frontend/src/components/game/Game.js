@@ -150,14 +150,6 @@ const Game = () => {
     }
   }, [gameRoom, connectWebSocket]);
 
-  const [showNextButton, setShowNextButton] = useState(false);
-
-  useEffect(() => {
-    setShowNextButton(false);
-    const timer = setTimeout(() => setShowNextButton(true), 3000);
-    return () => clearTimeout(timer);
-  }, [currentQuestionIndex]);
-
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
       submitQuiz();
@@ -269,25 +261,25 @@ const Game = () => {
         </h4>
         <p>{currentQuestion.text}</p>
       </div>
+
       <div className="flex flex-col gap-2 my-4">
         {currentQuestion.options &&
           currentQuestion.options.map((option) => (
             <button
               key={option.id}
-              onClick={() => !isHost && handleOptionSelect(option.id)}
-              disabled={score !== null || isHost}
-              className={`p-2 rounded 
-          ${
-            !isHost && selectedOptions[currentQuestion.id] === option.id
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200"
-          } 
-          ${isHost ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={() => handleOptionSelect(option.id)}
+              disabled={score !== null}
+              className={`p-2 rounded ${
+                selectedOptions[currentQuestion.id] === option.id
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200"
+              }`}
             >
               {option.text}
             </button>
           ))}
       </div>
+
       {isHost && (
         <div className="flex justify-between mt-6">
           <button
@@ -297,18 +289,15 @@ const Game = () => {
           >
             {t("Previous")}
           </button>
-
-          {showNextButton && (
-            <button
-              onClick={handleNextQuestion}
-              disabled={currentQuestionIndex >= questions.length}
-              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-            >
-              {currentQuestionIndex < questions.length - 1
-                ? t("Next")
-                : t("Submit")}
-            </button>
-          )}
+          <button
+            onClick={handleNextQuestion}
+            disabled={currentQuestionIndex >= questions.length}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          >
+            {currentQuestionIndex < questions.length - 1
+              ? t("Next")
+              : t("Submit")}
+          </button>
         </div>
       )}
     </div>
