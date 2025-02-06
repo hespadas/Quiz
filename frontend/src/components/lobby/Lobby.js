@@ -39,9 +39,6 @@ const Lobby = () => {
       const backendHost = process.env.REACT_APP_BACKEND_HOST;
       const backendPort = process.env.REACT_APP_BACKEND_PORT;
 
-      console.log("backendHost", backendHost);
-      console.log("backendPort", backendPort);
-
       const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/lobby/${code}/`;
 
       const ws = new WebSocket(wsUrl);
