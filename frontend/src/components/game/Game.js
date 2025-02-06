@@ -172,17 +172,20 @@ const Game = () => {
   }, [currentQuestionIndex, gameRoom, submitQuiz]);
 
   const questions = useMemo(() => gameRoom?.quiz?.questions || [], [gameRoom]);
-  const currentQuestion = questions[currentQuestionIndex] || {};
+  const currentQuestion = useMemo(
+    () => questions[currentQuestionIndex] || {},
+    [questions, currentQuestionIndex]
+  );
 
   const handleOptionSelect = useCallback(
     (optionId) => {
-      if (!gameRoom || !currentQuestion.id) return;
+      if (!gameRoom || !currentQuestion?.id) return;
       setSelectedOptions((prev) => ({
         ...prev,
         [currentQuestion.id]: optionId,
       }));
     },
-    [gameRoom, currentQuestion]
+    [gameRoom, currentQuestion.id]
   );
 
   const handleNextQuestion = useCallback(() => {
