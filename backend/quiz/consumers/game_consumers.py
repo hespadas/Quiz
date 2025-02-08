@@ -7,65 +7,39 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache
 
 from quiz.models.game import Game
+from quiz.services.game_room_cache import GameRoomCache
 
 logger = logging.getLogger(__name__)
 
 
-def initialize_cache(key, default_value, room_code):
-    value = cache.get(key, None)
-    if value is None:
-        cache.set(key, default_value)
-        logger.debug(f"[initialize_cache] Initialized {key} with default: {default_value} for room {room_code}")
-        return default_value
-    return value
-
-
 class GameRoomConsumer(AsyncWebsocketConsumer):
-    scores = {}
-    expected_submissions = {}
-    user_count = {}
-    submitted_users = {}
-    room_user_connections = {}
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.cache_manager = None
         self.room_group_name = None
         self.room_code = None
-        self.scores_key = None
-        self.expected_submissions_key = None
-        self.user_count_key = None
-        self.submitted_users_key = None
-        self.room_user_connections_key = None
 
     async def connect(self):
         self.room_code = self.scope["url_route"]["kwargs"]["code"]
         self.room_group_name = f"game_room_{self.room_code}"
         username = self.scope["user"].username
+
         logger.info(f"User {username} connecting to room {self.room_code}.")
 
-        self.scores_key = f"game_room:{self.room_code}:scores"
-        self.expected_submissions_key = f"game_room:{self.room_code}:expected_submissions"
-        self.user_count_key = f"game_room:{self.room_code}:user_count"
-        self.submitted_users_key = f"game_room:{self.room_code}:submitted_users"
-        self.room_user_connections_key = f"game_room:{self.room_code}:user_connections"
+        self.cache_manager = GameRoomCache(self.room_code)
+        self.cache_manager.initialize()
 
-        initialize_cache(self.scores_key, {}, self.room_code)
-        initialize_cache(self.expected_submissions_key, 0, self.room_code)
-        initialize_cache(self.user_count_key, 0, self.room_code)
-        initialize_cache(self.submitted_users_key, set(), self.room_code)
-        initialize_cache(self.room_user_connections_key, {}, self.room_code)
-
-        room_connections = cache.get(self.room_user_connections_key)
+        room_connections = self.cache_manager.get_room_user_connections()
         if username in room_connections:
             room_connections[username] += 1
             logger.info(f"User {username} already connected. Count: {room_connections[username]}.")
         else:
             room_connections[username] = 1
-            user_count = cache.get(self.user_count_key) + 1
-            cache.set(self.user_count_key, user_count)
+            user_count = self.cache_manager.get_user_count() + 1
+            self.cache_manager.set_user_count(user_count)
             logger.info(f"User {username} joined room. New user count: {user_count}.")
 
-        cache.set(self.room_user_connections_key, room_connections)
+        self.cache_manager.set_room_user_connections(room_connections)
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
@@ -75,34 +49,30 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         username = self.scope["user"].username
         logger.info(f"User {username} disconnecting from room {self.room_code} with close code {close_code}.")
 
-        room_user_connections_key = f"game_room:{self.room_code}:user_connections"
-        user_count_key = f"game_room:{self.room_code}:user_count"
-        expected_submissions_key = f"game_room:{self.room_code}:expected_submissions"
-
-        room_connections = cache.get(room_user_connections_key, {})
-
+        room_connections = self.cache_manager.get_room_user_connections()
         if username in room_connections:
             room_connections[username] -= 1
             if room_connections[username] <= 0:
                 del room_connections[username]
-                cache.decr(user_count_key)
+                new_count = max(self.cache_manager.get_user_count() - 1, 0)
+                self.cache_manager.set_user_count(new_count)
                 logger.info(
                     f"User {username} left room {self.room_code}. "
-                    f"Current user count: {cache.get(user_count_key, 0)}."
+                    f"Current user count: {new_count}."
                 )
             else:
                 logger.info(
-                    f"User {username} still has {room_connections[username]} "
-                    f"connection(s) in room {self.room_code}."
+                    f"User {username} still has {room_connections[username]} connection(s) in room {self.room_code}."
                 )
 
-        cache.set(room_user_connections_key, room_connections)
+        self.cache_manager.set_room_user_connections(room_connections)
 
-        if cache.get(expected_submissions_key, 0) > 0:
-            cache.decr(expected_submissions_key)
+        expected_submissions = self.cache_manager.get_expected_submissions()
+        if expected_submissions > 0:
+            self.cache_manager.set_expected_submissions(expected_submissions - 1)
             logger.info(
                 f"Decremented expected_submissions for room {self.room_code}. "
-                f"Current value: {cache.get(expected_submissions_key, 0)}."
+                f"Current value: {self.cache_manager.get_expected_submissions()}."
             )
 
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)

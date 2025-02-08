@@ -276,6 +276,26 @@ const Game = () => {
             </button>
           ))}
       </div>
+      {isHost && (
+        <div className="flex justify-between mt-6">
+          <button
+            onClick={handlePreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          >
+            {t("Previous")}
+          </button>
+          <button
+            onClick={handleNextQuestion}
+            disabled={currentQuestionIndex >= questions.length}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          >
+            {currentQuestionIndex < questions.length - 1
+              ? t("Next")
+              : t("Submit")}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
