@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from quiz.models.game import Game
@@ -133,9 +133,5 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         }))
 
     async def delete_game_room(self):
-        async_delete = sync_to_async(Game.objects.filter(code=self.room_code).delete)
-        try:
-            await async_delete()
-            logger.info(f"Game room {self.room_code} deleted successfully.")
-        except Exception as e:
-            logger.error(f"Failed to delete game room {self.room_code}: {e}")
+        async_delete = database_sync_to_async(Game.objects.filter(code=self.room_code).delete)()
+        await async_delete()
