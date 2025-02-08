@@ -250,56 +250,32 @@ const Game = () => {
         {t("Game Room")} {gameRoom.code}
       </h2>
       <h3 className="text-xl font-semibold mb-2">{gameRoom.quiz.title}</h3>
-
       <p className="text-gray-600">
         {t("Created by")}: {gameRoom.host}
       </p>
-
       <div className="my-4">
         <h4 className="text-lg font-medium">
           {t("Question")} {currentQuestionIndex + 1}/{questions.length}
         </h4>
         <p>{currentQuestion.text}</p>
       </div>
-
       <div className="flex flex-col gap-2 my-4">
         {currentQuestion.options &&
           currentQuestion.options.map((option) => (
             <button
               key={option.id}
               onClick={() => handleOptionSelect(option.id)}
-              disabled={score !== null}
+              disabled={isHost || score !== null}
               className={`p-2 rounded ${
                 selectedOptions[currentQuestion.id] === option.id
                   ? "bg-blue-500 text-white"
                   : "bg-gray-200"
-              }`}
+              } ${isHost ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {option.text}
             </button>
           ))}
       </div>
-
-      {isHost && (
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-          >
-            {t("Previous")}
-          </button>
-          <button
-            onClick={handleNextQuestion}
-            disabled={currentQuestionIndex >= questions.length}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-          >
-            {currentQuestionIndex < questions.length - 1
-              ? t("Next")
-              : t("Submit")}
-          </button>
-        </div>
-      )}
     </div>
   );
 };
