@@ -1,138 +1,93 @@
 # quiz/consumers/lobby_consumers.py
 import json
-import logging
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from quiz.models.game import Game
+from quiz.services.lobby_manager import LobbyManager
 
-logger = logging.getLogger(__name__)
+
+class GameService:
+    @staticmethod
+    @database_sync_to_async
+    def get_game_host_username(code):
+        try:
+            game = Game.objects.get(code=code)
+            return game.host.username
+        except Game.DoesNotExist:
+            return None
 
 
 class LobbyConsumer(AsyncWebsocketConsumer):
-    lobbies = {}
-
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(args, kwargs)
         self.code = None
-
-    @staticmethod
-    @database_sync_to_async
-    def get_game_and_host_username(code):
-        game = Game.objects.get(code=code)
-        return game.host.username
 
     async def connect(self):
         self.code = self.scope['url_route']['kwargs']['code']
         user = self.scope['user']
-
         if not user.is_authenticated:
-            logger.warning("Unauthenticated user tried to connect. Closing.")
             await self.close()
             return
 
         await self.accept()
-        logger.info(f"User {user.username} connected with code {self.code}")
 
-        if self.code not in self.__class__.lobbies:
-            self.__class__.lobbies[self.code] = {
-                "users": set(),
-                "real_host": None,
-            }
+        LobbyManager.add_user(self.code, user.username)
 
-        lobby_data = self.__class__.lobbies[self.code]
-        lobby_data["users"].add(user.username)
-
-        try:
-            real_host_username = await self.get_game_and_host_username(self.code)
-        except Game.DoesNotExist:
-            logger.error(f"Game with code {self.code} does not exist. Closing connection.")
+        real_host_username = await GameService.get_game_host_username(self.code)
+        if not real_host_username:
             await self.close()
             return
 
-        if lobby_data["real_host"] is None:
-            lobby_data["real_host"] = real_host_username
-            logger.info(f"Lobby {self.code}: real_host set to {real_host_username}")
-
-        if user.username != real_host_username:
-            logger.info(f"Lobby {self.code}: {user.username} is not the host.")
-        else:
-            logger.info(f"Lobby {self.code}: {user.username} is the host.")
+        LobbyManager.set_real_host(self.code, real_host_username)
 
         await self.channel_layer.group_add(self.code, self.channel_name)
         await self.send_user_list()
 
     async def disconnect(self, close_code):
         user = self.scope['user']
-
         if user.is_authenticated:
             await self.channel_layer.group_discard(self.code, self.channel_name)
 
-            lobby_data = self.__class__.lobbies.get(self.code)
-            if lobby_data:
-                if user.username in lobby_data["users"]:
-                    lobby_data["users"].remove(user.username)
-                    logger.info(f"User {user.username} disconnected from {self.code}")
+            if LobbyManager.has_lobby(self.code):
+                LobbyManager.remove_user(self.code, user.username)
 
-                if not lobby_data["users"]:
-                    logger.info(f"Lobby {self.code} empty, cleaning up.")
-                    del self.__class__.lobbies[self.code]
-                else:
+                if LobbyManager.has_lobby(self.code):
                     await self.send_user_list(safe=True)
-            else:
-                logger.debug(
-                    f"disconnect called for code={self.code}, but no lobby_data found. Possibly removed already."
-                )
 
     async def receive(self, text_data=None, bytes_data=None):
         user = self.scope['user']
         if not user.is_authenticated:
-            logger.warning("Unauthenticated user sent a message, ignoring.")
             return
 
-        try:
-            data = json.loads(text_data)
-            message_type = data.get('type')
+        data = json.loads(text_data)
+        message_type = data.get('type')
 
-            if message_type == "start_game":
-                lobby_data = self.__class__.lobbies[self.code]
-                if user.username == lobby_data["real_host"]:
-                    logger.info(f"Lobby {self.code}: Start game triggered by {user.username}")
-                    await self.channel_layer.group_send(
-                        self.code,
-                        {
-                            "type": "game_started",
-                            "quiz_id": data.get("quiz_id"),
-                        }
-                    )
-                else:
-                    logger.warning(f"Lobby {self.code}: Unauthorized start_game attempt by {user.username}")
-            else:
-                logger.warning(f"Lobby {self.code}: Unknown message_type {message_type}")
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON decode error: {e}")
-        except Exception as e:
-            logger.error(f"Error processing received message: {e}")
+        if message_type == "start_game":
+            if user.username == LobbyManager.get_real_host(self.code):
+                await self.channel_layer.group_send(
+                    self.code,
+                    {
+                        "type": "game_started",
+                        "quiz_id": data.get("quiz_id"),
+                    }
+                )
 
     async def game_started(self, event):
-        logger.info(f"Lobby {self.code}: Broadcasting 'game_started' to all.")
         await self.send_json({
             "type": "game_started",
             "quiz_id": event.get("quiz_id"),
         })
 
     async def send_user_list(self, safe=False):
-        if self.code not in self.__class__.lobbies:
+        if not LobbyManager.has_lobby(self.code):
             if not safe:
                 raise KeyError(f"No lobby data for code {self.code}")
-            else:
-                logger.debug(f"send_user_list: skipping because {self.code} was not found in lobbies.")
             return
 
-        lobby_data = self.__class__.lobbies[self.code]
-        users_list = list(lobby_data["users"])
-        current_host = lobby_data.get("host") or lobby_data.get("real_host")
+        users_list = LobbyManager.get_users(self.code)
+        current_host = LobbyManager.get_real_host(self.code)
 
         await self.channel_layer.group_send(
             self.code,

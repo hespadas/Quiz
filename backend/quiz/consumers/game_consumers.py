@@ -6,7 +6,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from quiz.models.game import Game
-from quiz.services.connection_manager import ConnectionManager
+from quiz.services.game_connection_manager import ConnectionManager
 from quiz.services.game_room_cache import GameRoomCache
 from quiz.services.score_manager import ScoreManager
 
