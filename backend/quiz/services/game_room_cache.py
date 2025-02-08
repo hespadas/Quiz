@@ -16,7 +16,6 @@ class GameRoomCache:
         self.room_user_connections_key = f"game_room:{room_code}:user_connections"
 
     def initialize(self):
-        """Initialize all cache keys with default values if they do not already exist."""
         self._initialize_cache(self.scores_key, {})
         self._initialize_cache(self.expected_submissions_key, 0)
         self._initialize_cache(self.user_count_key, 0)
@@ -28,35 +27,30 @@ class GameRoomCache:
             cache.set(key, default_value)
             logger.debug(f"Initialized {key} with default: {default_value} for room {self.room_code}")
 
-    # Getter and setter for scores
     def get_scores(self):
         return cache.get(self.scores_key, {})
 
     def set_scores(self, scores):
         cache.set(self.scores_key, scores)
 
-    # Getter and setter for expected submissions
     def get_expected_submissions(self):
         return cache.get(self.expected_submissions_key, 0)
 
     def set_expected_submissions(self, value):
         cache.set(self.expected_submissions_key, value)
 
-    # Getter and setter for user count
     def get_user_count(self):
         return cache.get(self.user_count_key, 0)
 
     def set_user_count(self, value):
         cache.set(self.user_count_key, value)
 
-    # Getter and setter for submitted users
     def get_submitted_users(self):
         return cache.get(self.submitted_users_key, set())
 
     def set_submitted_users(self, users):
         cache.set(self.submitted_users_key, users)
 
-    # Getter and setter for room user connections
     def get_room_user_connections(self):
         return cache.get(self.room_user_connections_key, {})
 

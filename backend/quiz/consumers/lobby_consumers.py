@@ -4,6 +4,7 @@ import logging
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+
 from quiz.models.game import Game
 
 logger = logging.getLogger(__name__)
@@ -11,6 +12,10 @@ logger = logging.getLogger(__name__)
 
 class LobbyConsumer(AsyncWebsocketConsumer):
     lobbies = {}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.code = None
 
     @staticmethod
     @database_sync_to_async
@@ -118,7 +123,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         })
 
     async def send_user_list(self, safe=False):
-        """Broadcast an updated user list. If safe=True, skip if code is missing."""
         if self.code not in self.__class__.lobbies:
             if not safe:
                 raise KeyError(f"No lobby data for code {self.code}")
