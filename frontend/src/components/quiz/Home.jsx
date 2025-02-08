@@ -15,7 +15,7 @@ export const Home = () => {
         navigate("/login");
       }
     };
-    fetchData();
+    void fetchData();
   }, [navigate]);
 
   return (

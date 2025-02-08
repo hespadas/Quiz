@@ -47,7 +47,7 @@ const EditQuiz = () => {
       }
     };
 
-    fetchQuiz();
+    void fetchQuiz();
   }, [id, navigate, t]);
 
   if (loading) {

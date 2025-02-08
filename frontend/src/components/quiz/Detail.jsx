@@ -31,7 +31,7 @@ const QuizDetail = () => {
       }
     };
 
-    fetchQuiz();
+    void fetchQuiz();
   }, [id, navigate, t]);
 
   return (
@@ -47,9 +47,6 @@ const QuizDetail = () => {
           <p className="text-gray-500 mb-2">
             {t("Category")}:{" "}
             {quiz.category ? quiz.category.name : t("Uncategorized")}
-          </p>
-          <p className="text-gray-500 mb-4">
-            {t("Created At")}: {new Date(quiz.created_at).toLocaleDateString()}
           </p>
 
           <h3 className="text-2xl font-semibold mb-2">{t("Questions")}</h3>

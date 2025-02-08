@@ -85,7 +85,7 @@ const Game = () => {
         toast.error(t("Error fetching game room."));
       }
     };
-    fetchGame();
+    void fetchGame();
   }, [code, t]);
 
   const connectWebSocket = useCallback(
