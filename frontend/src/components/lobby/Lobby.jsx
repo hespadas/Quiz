@@ -23,25 +23,25 @@ const Lobby = () => {
   const [hostUsername, setHostUsername] = useState(null);
 
   useEffect(() => {
-    if (code) {
-      axios
-        .get(`/game_rooms/${code}/`)
-        .then((response) => setGameInfo(response.data))
-        .catch((err) => {
-          console.error("[Lobby] Erro ao carregar os dados:", err);
-          toast.error("Falha ao carregar o lobby.");
-        });
-    }
-  }, [code]);
+    if (!code) return;
+    axios
+      .get(`/game_rooms/${code}/`)
+      .then((response) => setGameInfo(response.data))
+      .catch((err) => {
+        console.error("[Lobby] Erro ao carregar os dados:", err);
+        toast.error("Falha ao carregar o lobby.");
+        setGameInfo(null);
+        navigate("/");
+      });
+  }, [code, navigate]);
 
   const wsUrl = useMemo(() => {
-    if (!code) return null;
+    if (!gameInfo || !code) return null;
     const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
     const backendHost = process.env.REACT_APP_BACKEND_HOST || "localhost";
     const backendPort = process.env.REACT_APP_BACKEND_PORT || "8000";
     return `${wsProtocol}://${backendHost}:${backendPort}/ws/lobby/${code}/`;
-  }, [code]);
-
+  }, [gameInfo, code]);
   const handleWebSocketMessage = useCallback(
     (data) => {
       switch (data.type) {
