@@ -1,138 +1,31 @@
-import React, {
-  useContext,
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
-import { useParams } from "react-router-dom";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { AuthContext } from "../auth/AuthContext";
-import useGameWebSocket from "../../hooks/useGameWebSocket";
-import useGameRoom from "../../hooks/useGameRoom";
-import useSubmitQuiz from "../../hooks/useSubmitQuiz";
+import useGameLogic from "../../hooks/useGameLogic";
+import Question from "./Question";
+import Scoreboard from "./Scoreboard";
 
 const Game = () => {
   const { t } = useTranslation();
-  const { code } = useParams();
-  const { user } = useContext(AuthContext);
-
-  const { gameRoom, error } = useGameRoom(code);
-
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedOptions, setSelectedOptions] = useState({});
-  const [score, setScore] = useState(null);
-  const [finalScores, setFinalScores] = useState(null);
-
-  const selectedOptionsRef = useRef(selectedOptions);
-  useEffect(() => {
-    selectedOptionsRef.current = selectedOptions;
-  }, [selectedOptions]);
-
-  const { sendMessage } = useGameWebSocket(
+  const {
     gameRoom,
-    code,
-    handleWebSocketMessage
-  );
-
-  const submitQuiz = useSubmitQuiz(
-    gameRoom,
-    selectedOptionsRef,
-    user,
+    error,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
+    selectedOptions,
+    setSelectedOptions,
+    score,
+    finalScores,
     sendMessage,
-    setScore
-  );
-
-  const handleWebSocketMessage = useCallback(
-    (data) => {
-      if (data.type === "quiz_finished") {
-        submitQuiz();
-      } else if (data.type === "question_advanced") {
-        setCurrentQuestionIndex(data.question_index);
-      } else if (data.type === "scores_update") {
-        setFinalScores(data.scores);
-      }
-    },
-    [submitQuiz, setCurrentQuestionIndex]
-  );
-
-  useEffect(() => {
-    if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
-      submitQuiz();
-    }
-  }, [currentQuestionIndex, gameRoom, submitQuiz]);
-
-  const questions = useMemo(() => gameRoom?.quiz?.questions || [], [gameRoom]);
-  const currentQuestion = useMemo(
-    () => questions[currentQuestionIndex] || {},
-    [questions, currentQuestionIndex]
-  );
-
-  const handleOptionSelect = useCallback(
-    (optionId) => {
-      if (!gameRoom || !currentQuestion.id) return;
-      setSelectedOptions((prevSelectedOptions) => ({
-        ...prevSelectedOptions,
-        [currentQuestion.id]: optionId,
-      }));
-    },
-    [gameRoom, currentQuestion]
-  );
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      sendMessage({
-        type: "advance_question",
-        question_index: currentQuestionIndex + 1,
-      });
-    } else {
-      sendMessage({
-        type: "quiz_finished",
-      });
-    }
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      sendMessage({
-        type: "advance_question",
-        question_index: currentQuestionIndex - 1,
-      });
-    }
-  };
+    user,
+  } = useGameLogic();
 
   if (!gameRoom) {
     return <p>{error || t("Carregando sala de jogo...")}</p>;
   }
 
   if (score !== null && finalScores) {
-    const filteredScores = finalScores.filter(
-      (item) => item.username !== gameRoom.host
-    );
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-        <h2 className="text-3xl font-bold mb-6">Placar</h2>
-        <ul className="w-full max-w-md bg-white rounded-lg shadow p-4 space-y-2">
-          {filteredScores.map((item) => (
-            <li
-              key={item.username}
-              className="flex justify-between p-2 border-b last:border-b-0"
-            >
-              <span className="font-medium text-gray-700">
-                {item.username}:
-              </span>
-              <span className="text-blue-600">
-                {item.score}/{item.total}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
+    return <Scoreboard finalScores={finalScores} host={gameRoom.host} />;
   }
-
-  const isHost = gameRoom.host === user?.username;
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded">
@@ -143,44 +36,36 @@ const Game = () => {
       <p className="text-gray-600">
         {t("Criado por")}: {gameRoom.host}
       </p>
-      <div className="my-4">
-        <h4 className="text-lg font-medium">
-          {t("Pergunta")} {currentQuestionIndex + 1}/{questions.length}
-        </h4>
-        <p>{currentQuestion.text}</p>
-      </div>
-      <div className="flex flex-col gap-2 my-4">
-        {currentQuestion.options &&
-          currentQuestion.options.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => handleOptionSelect(option.id)}
-              disabled={isHost || score !== null}
-              className={`p-2 rounded ${
-                selectedOptions[currentQuestion.id] === option.id
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200"
-              } ${isHost ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              {option.text}
-            </button>
-          ))}
-      </div>
-      {isHost && (
+
+      <Question
+        gameRoom={gameRoom}
+        currentQuestionIndex={currentQuestionIndex}
+        selectedOptions={selectedOptions}
+        setSelectedOptions={setSelectedOptions}
+      />
+
+      {gameRoom.host === user?.username && (
         <div className="flex justify-between mt-6">
           <button
-            onClick={handlePreviousQuestion}
+            onClick={() =>
+              setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
+            }
             disabled={currentQuestionIndex === 0}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {t("Anterior")}
           </button>
           <button
-            onClick={handleNextQuestion}
-            disabled={currentQuestionIndex >= questions.length}
+            onClick={() =>
+              sendMessage({
+                type: "advance_question",
+                question_index: currentQuestionIndex + 1,
+              })
+            }
+            disabled={currentQuestionIndex >= gameRoom.quiz.questions.length}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
-            {currentQuestionIndex < questions.length - 1
+            {currentQuestionIndex < gameRoom.quiz.questions.length - 1
               ? t("Próxima")
               : t("Enviar")}
           </button>
