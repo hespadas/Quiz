@@ -2,17 +2,6 @@ from rest_framework import serializers
 
 from ..models.game import Game
 from ..models.quiz import Quiz
-from .quiz_serializer import QuizSerializer
-
-
-class GameSerializer(serializers.ModelSerializer):
-    quiz = QuizSerializer(read_only=True)
-    host = serializers.StringRelatedField(read_only=True)
-
-    class Meta:
-        model = Game
-        fields = ['id', 'code', 'quiz', 'host', 'created_at']
-        read_only_fields = ['code', 'host', 'created_at']
 
 
 class LobbyCreateSerializer(serializers.ModelSerializer):
