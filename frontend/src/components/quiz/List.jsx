@@ -42,7 +42,7 @@ const QuizList = () => {
       }
     };
 
-    fetchQuizzes();
+    void fetchQuizzes();
   }, [currentPage, searchQuery, ordering, navigate, t]);
 
   const handleSearch = (e) => {

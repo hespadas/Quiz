@@ -20,7 +20,7 @@ const CreateLobby = () => {
         toast.error(t("Error fetching quizzes."));
       }
     };
-    fetchQuizzes();
+    void fetchQuizzes();
   }, [t]);
 
   const handleSubmit = async (e) => {
