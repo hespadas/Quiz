@@ -23,6 +23,14 @@ const useGameLogic = () => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
 
+  const submitQuiz = useSubmitQuiz(
+    gameRoom,
+    selectedOptionsRef,
+    user,
+    () => sendMessage({ type: "quiz_finished" }),
+    setScore
+  );
+
   const handleWebSocketMessage = useCallback(
     (data) => {
       if (data.type === "quiz_finished") {
@@ -34,7 +42,7 @@ const useGameLogic = () => {
         setFinalScores(data.scores);
       }
     },
-    [setCurrentQuestionIndex]
+    [submitQuiz, setCurrentQuestionIndex, setFinalScores] // ✅ Agora `submitQuiz` já foi definido
   );
 
   const { sendMessage, socket } = useGameWebSocket(
@@ -42,14 +50,6 @@ const useGameLogic = () => {
     code,
     handleWebSocketMessage,
     !gameOver
-  );
-
-  const submitQuiz = useSubmitQuiz(
-    gameRoom,
-    selectedOptionsRef,
-    user,
-    sendMessage,
-    setScore
   );
 
   useEffect(() => {

@@ -4,16 +4,6 @@ import axios from "../services/axiosConfig";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 
-/**
- * Hook que encapsula a lógica de envio do quiz e manipulação de erros.
- *
- * @param {object} gameRoom - Objeto da sala de jogo, contendo o quiz.
- * @param {object} selectedOptionsRef - Referência para as opções selecionadas.
- * @param {object} user - Objeto do usuário autenticado.
- * @param {function} sendMessage - Função para enviar mensagens via WebSocket.
- * @param {function} setScore - Função para atualizar a pontuação.
- * @returns {function} submitQuiz - Função para submeter o quiz.
- */
 const useSubmitQuiz = (
   gameRoom,
   selectedOptionsRef,
@@ -23,7 +13,7 @@ const useSubmitQuiz = (
 ) => {
   const { t } = useTranslation();
 
-  const submitQuiz = useCallback(async () => {
+  return useCallback(async () => {
     try {
       if (!gameRoom) return;
       const response = await axios.post(
@@ -61,8 +51,6 @@ const useSubmitQuiz = (
       }
     }
   }, [gameRoom, selectedOptionsRef, user, sendMessage, setScore, t]);
-
-  return submitQuiz;
 };
 
 export default useSubmitQuiz;
