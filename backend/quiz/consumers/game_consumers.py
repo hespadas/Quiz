@@ -133,5 +133,5 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         }))
 
     async def delete_game_room(self):
-        async_delete = database_sync_to_async(Game.objects.filter(code=self.room_code).delete)()
+        async_delete = database_sync_to_async(Game.objects.filter(code=self.room_code).delete)
         await async_delete()
