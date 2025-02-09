@@ -4,16 +4,14 @@ import React, {
   useState,
   useRef,
   useCallback,
+  useMemo,
 } from "react";
-import axios from "../../services/axiosConfig";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { toast } from "react-toastify";
 import { AuthContext } from "../auth/AuthContext";
 import useGameWebSocket from "../../hooks/useGameWebSocket";
 import useGameRoom from "../../hooks/useGameRoom";
-
-import useQuizProgress from "../../hooks/useQuizProgress";
+import useSubmitQuiz from "../../hooks/useSubmitQuiz";
 
 const Game = () => {
   const { t } = useTranslation();
@@ -22,6 +20,7 @@ const Game = () => {
 
   const { gameRoom, error } = useGameRoom(code);
 
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [score, setScore] = useState(null);
   const [finalScores, setFinalScores] = useState(null);
@@ -31,45 +30,19 @@ const Game = () => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
 
-  const submitQuiz = useCallback(async () => {
-    try {
-      if (!gameRoom) return;
+  const { sendMessage } = useGameWebSocket(
+    gameRoom,
+    code,
+    handleWebSocketMessage
+  );
 
-      const response = await axios.post(
-        `/quizzes/submit/${gameRoom.quiz.id}/`,
-        { answers: selectedOptionsRef.current },
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-
-      setScore(response.data);
-      sendMessage({
-        type: "user_score",
-        username: user.username,
-        score: response.data.score,
-        total: response.data.total,
-      });
-    } catch (error) {
-      console.error(
-        `[Frontend] O usuário ${user?.username} falhou ao enviar as respostas`,
-        error
-      );
-
-      if (error.response) {
-        console.error("Erro do backend:", error.response.data);
-        toast.error(error.response.data.message || t("Erro ao enviar quiz."));
-      } else if (error.request) {
-        console.error("Sem resposta do backend:", error.request);
-        toast.error(t("Erro de rede. Por favor, tente novamente."));
-      } else {
-        console.error("Erro:", error.message);
-        toast.error(t("Ocorreu um erro inesperado."));
-      }
-    }
-  }, [gameRoom, t, user]);
+  const submitQuiz = useSubmitQuiz(
+    gameRoom,
+    selectedOptionsRef,
+    user,
+    sendMessage,
+    setScore
+  );
 
   const handleWebSocketMessage = useCallback(
     (data) => {
@@ -81,23 +54,20 @@ const Game = () => {
         setFinalScores(data.scores);
       }
     },
-    [submitQuiz]
+    [submitQuiz, setCurrentQuestionIndex]
   );
 
-  const { sendMessage } = useGameWebSocket(
-    gameRoom,
-    code,
-    handleWebSocketMessage
-  );
+  useEffect(() => {
+    if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
+      submitQuiz();
+    }
+  }, [currentQuestionIndex, gameRoom, submitQuiz]);
 
-  const {
-    currentQuestionIndex,
-    currentQuestion,
-    questions,
-    handleNextQuestion,
-    handlePreviousQuestion,
-    setCurrentQuestionIndex,
-  } = useQuizProgress(gameRoom, submitQuiz, sendMessage);
+  const questions = useMemo(() => gameRoom?.quiz?.questions || [], [gameRoom]);
+  const currentQuestion = useMemo(
+    () => questions[currentQuestionIndex] || {},
+    [questions, currentQuestionIndex]
+  );
 
   const handleOptionSelect = useCallback(
     (optionId) => {
@@ -109,6 +79,28 @@ const Game = () => {
     },
     [gameRoom, currentQuestion]
   );
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      sendMessage({
+        type: "advance_question",
+        question_index: currentQuestionIndex + 1,
+      });
+    } else {
+      sendMessage({
+        type: "quiz_finished",
+      });
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      sendMessage({
+        type: "advance_question",
+        question_index: currentQuestionIndex - 1,
+      });
+    }
+  };
 
   if (!gameRoom) {
     return <p>{error || t("Carregando sala de jogo...")}</p>;
