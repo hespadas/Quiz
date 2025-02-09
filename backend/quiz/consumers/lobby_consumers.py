@@ -1,22 +1,10 @@
 # quiz/consumers/lobby_consumers.py
 import json
 
-from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from quiz.models.game import Game
+from quiz.services.game_service import GameService
 from quiz.services.lobby_manager import LobbyManager
-
-
-class GameService:
-    @staticmethod
-    @database_sync_to_async
-    def get_game_host_username(code):
-        try:
-            game = Game.objects.get(code=code)
-            return game.host.username
-        except Game.DoesNotExist:
-            return None
 
 
 class LobbyConsumer(AsyncWebsocketConsumer):
