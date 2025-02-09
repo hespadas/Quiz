@@ -11,6 +11,7 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { AuthContext } from "../auth/AuthContext";
+import useWebSocket from "../../hooks/useWebSocket";
 
 const Game = () => {
   const { t } = useTranslation();
@@ -19,12 +20,11 @@ const Game = () => {
   const [gameRoom, setGame] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
-  const selectedOptionsRef = useRef(selectedOptions);
   const [error, setError] = useState(null);
   const [score, setScore] = useState(null);
-  const socketRef = useRef(null);
   const [finalScores, setFinalScores] = useState(null);
 
+  const selectedOptionsRef = useRef(selectedOptions);
   useEffect(() => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
@@ -43,34 +43,31 @@ const Game = () => {
 
       setScore(response.data);
 
-      if (socketRef.current?.readyState === WebSocket.OPEN) {
-        socketRef.current.send(
-          JSON.stringify({
-            type: "user_score",
-            username: user.username,
-            score: response.data.score,
-            total: response.data.total,
-          })
-        );
-      }
+      sendMessage({
+        type: "user_score",
+        username: user.username,
+        score: response.data.score,
+        total: response.data.total,
+      });
     } catch (error) {
       console.error(
-        `[Frontend] User ${user?.username} failed to submit answers`,
+        `[Frontend] O usuário ${user?.username} falhou ao enviar as respostas`,
         error
       );
 
       if (error.response) {
-        console.error("Backend error:", error.response.data);
-        toast.error(error.response.data.message || t("Error submitting quiz."));
+        console.error("Erro do backend:", error.response.data);
+        toast.error(error.response.data.message || t("Erro ao enviar quiz."));
       } else if (error.request) {
-        console.error("No response from backend:", error.request);
-        toast.error(t("Network error. Please try again."));
+        console.error("Sem resposta do backend:", error.request);
+        toast.error(t("Erro de rede. Por favor, tente novamente."));
       } else {
-        console.error("Error:", error.message);
-        toast.error(t("An unexpected error occurred."));
+        console.error("Erro:", error.message);
+        toast.error(t("Ocorreu um erro inesperado."));
       }
     }
   }, [gameRoom, t, user]);
+
   useEffect(() => {
     const fetchGame = async () => {
       try {
@@ -78,77 +75,38 @@ const Game = () => {
         setGame(response.data);
       } catch (err) {
         console.error(
-          "[Frontend] Error fetching game room:",
+          "[Frontend] Erro ao buscar a sala de jogo:",
           err.response || err.message
         );
-        setError(t("Error fetching game room."));
-        toast.error(t("Error fetching game room."));
+        setError(t("Erro ao buscar a sala de jogo."));
+        toast.error(t("Erro ao buscar a sala de jogo."));
       }
     };
     void fetchGame();
   }, [code, t]);
 
-  const connectWebSocket = useCallback(
-    (attempt = 1) => {
-      if (
-        socketRef.current &&
-        socketRef.current.readyState === WebSocket.OPEN
-      ) {
-        return;
+  const wsUrl = useMemo(() => {
+    if (!gameRoom) return null;
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const backendHost = process.env.REACT_APP_BACKEND_HOST || "localhost";
+    const backendPort = process.env.REACT_APP_BACKEND_PORT || "8000";
+    return `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/`;
+  }, [gameRoom, code]);
+
+  const handleWebSocketMessage = useCallback(
+    (data) => {
+      if (data.type === "quiz_finished") {
+        submitQuiz();
+      } else if (data.type === "question_advanced") {
+        setCurrentQuestionIndex(data.question_index);
+      } else if (data.type === "scores_update") {
+        setFinalScores(data.scores);
       }
-
-      const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const backendHost = process.env.REACT_APP_BACKEND_HOST || "localhost";
-      const backendPort = process.env.REACT_APP_BACKEND_PORT || "8000";
-      const wsUrl = `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/`;
-
-      const ws = new WebSocket(wsUrl);
-
-      ws.onopen = () => {
-        socketRef.current = ws;
-        console.info("[WebSocket] Connection established.");
-      };
-
-      ws.onerror = (error) => {
-        console.error("[WebSocket] Error:", error);
-        if (attempt < 5) {
-          setTimeout(() => connectWebSocket(attempt + 1), attempt * 1000);
-        } else {
-          toast.error("WebSocket connection failed after multiple attempts.");
-        }
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === "quiz_finished") {
-            submitQuiz();
-          } else if (data.type === "question_advanced") {
-            setCurrentQuestionIndex(data.question_index);
-          } else if (data.type === "scores_update") {
-            setFinalScores(data.scores);
-          }
-        } catch (err) {
-          console.error("[WebSocket] Error parsing message:", err);
-        }
-      };
-
-      ws.onclose = () => {
-        console.warn(
-          "[WebSocket] Connection closed. Attempting to reconnect..."
-        );
-        setTimeout(() => connectWebSocket(), 2000);
-      };
     },
-    [code, submitQuiz]
+    [submitQuiz]
   );
 
-  useEffect(() => {
-    if (!socketRef.current && gameRoom) {
-      connectWebSocket();
-      return () => socketRef.current?.close();
-    }
-  }, [gameRoom, connectWebSocket]);
+  const { sendMessage } = useWebSocket(wsUrl, handleWebSocketMessage);
 
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
@@ -174,46 +132,31 @@ const Game = () => {
   );
 
   const handleNextQuestion = useCallback(() => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-      console.error(
-        "[WebSocket] Cannot send message: WebSocket is not connected."
-      );
-      toast.error("Connection lost. Reconnecting...");
-      connectWebSocket();
-      return;
-    }
-
     if (currentQuestionIndex < questions.length - 1) {
       const nextIndex = currentQuestionIndex + 1;
-      socketRef.current.send(
-        JSON.stringify({
-          type: "advance_question",
-          question_index: nextIndex,
-        })
-      );
+      sendMessage({
+        type: "advance_question",
+        question_index: nextIndex,
+      });
     } else {
-      socketRef.current.send(
-        JSON.stringify({
-          type: "quiz_finished",
-        })
-      );
+      sendMessage({
+        type: "quiz_finished",
+      });
     }
-  }, [currentQuestionIndex, questions, connectWebSocket]);
+  }, [currentQuestionIndex, questions, sendMessage]);
 
   const handlePreviousQuestion = useCallback(() => {
     if (currentQuestionIndex > 0) {
       const prevIndex = currentQuestionIndex - 1;
-      socketRef.current.send(
-        JSON.stringify({
-          type: "advance_question",
-          question_index: prevIndex,
-        })
-      );
+      sendMessage({
+        type: "advance_question",
+        question_index: prevIndex,
+      });
     }
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, sendMessage]);
 
   if (!gameRoom) {
-    return <p>{error || t("Loading game room...")}</p>;
+    return <p>{error || t("Carregando sala de jogo...")}</p>;
   }
 
   if (score !== null && finalScores) {
@@ -222,7 +165,7 @@ const Game = () => {
     );
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-        <h2 className="text-3xl font-bold mb-6">Scoreboard</h2>
+        <h2 className="text-3xl font-bold mb-6">Placar</h2>
         <ul className="w-full max-w-md bg-white rounded-lg shadow p-4 space-y-2">
           {filteredScores.map((item) => (
             <li
@@ -247,15 +190,15 @@ const Game = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded">
       <h2 className="text-2xl font-semibold mb-4">
-        {t("Game Room")} {gameRoom.code}
+        {t("Sala de Jogo")} {gameRoom.code}
       </h2>
       <h3 className="text-xl font-semibold mb-2">{gameRoom.quiz.title}</h3>
       <p className="text-gray-600">
-        {t("Created by")}: {gameRoom.host}
+        {t("Criado por")}: {gameRoom.host}
       </p>
       <div className="my-4">
         <h4 className="text-lg font-medium">
-          {t("Question")} {currentQuestionIndex + 1}/{questions.length}
+          {t("Pergunta")} {currentQuestionIndex + 1}/{questions.length}
         </h4>
         <p>{currentQuestion.text}</p>
       </div>
@@ -283,7 +226,7 @@ const Game = () => {
             disabled={currentQuestionIndex === 0}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
-            {t("Previous")}
+            {t("Anterior")}
           </button>
           <button
             onClick={handleNextQuestion}
@@ -291,8 +234,8 @@ const Game = () => {
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {currentQuestionIndex < questions.length - 1
-              ? t("Next")
-              : t("Submit")}
+              ? t("Próxima")
+              : t("Enviar")}
           </button>
         </div>
       )}
