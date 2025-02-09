@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-
 import { useParams } from "react-router-dom";
 import { useContext } from "react";
 import useGameRoom from "./useGameRoom";
@@ -17,6 +16,7 @@ const useGameLogic = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [score, setScore] = useState(null);
   const [finalScores, setFinalScores] = useState(null);
+  const [gameOver, setGameOver] = useState(false);
 
   const selectedOptionsRef = useRef(selectedOptions);
   useEffect(() => {
@@ -27,6 +27,7 @@ const useGameLogic = () => {
     (data) => {
       if (data.type === "quiz_finished") {
         submitQuiz();
+        setGameOver(true);
       } else if (data.type === "question_advanced") {
         setCurrentQuestionIndex(data.question_index);
       } else if (data.type === "scores_update") {
@@ -36,10 +37,11 @@ const useGameLogic = () => {
     [setCurrentQuestionIndex]
   );
 
-  const { sendMessage } = useGameWebSocket(
+  const { sendMessage, socket } = useGameWebSocket(
     gameRoom,
     code,
-    handleWebSocketMessage
+    handleWebSocketMessage,
+    !gameOver
   );
 
   const submitQuiz = useSubmitQuiz(
@@ -56,6 +58,12 @@ const useGameLogic = () => {
     }
   }, [currentQuestionIndex, gameRoom, submitQuiz]);
 
+  useEffect(() => {
+    if (gameOver && socket) {
+      socket.close();
+    }
+  }, [gameOver, socket]);
+
   return {
     gameRoom,
     error,
@@ -68,6 +76,7 @@ const useGameLogic = () => {
     submitQuiz,
     sendMessage,
     user,
+    gameOver,
   };
 };
 

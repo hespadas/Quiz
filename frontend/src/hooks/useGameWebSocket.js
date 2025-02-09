@@ -1,8 +1,7 @@
-// src/hooks/useGameWebSocket.js
 import { useMemo, useCallback } from "react";
 import useWebSocket from "./useWebSocket";
 
-function useGameWebSocket(gameRoom, code, onMessage) {
+function useGameWebSocket(gameRoom, code, onMessage, shouldReconnect) {
   const wsUrl = useMemo(() => {
     if (!gameRoom) return null;
     const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
@@ -20,7 +19,11 @@ function useGameWebSocket(gameRoom, code, onMessage) {
     [onMessage]
   );
 
-  const { sendMessage, socket } = useWebSocket(wsUrl, handleWebSocketMessage);
+  const { sendMessage, socket } = useWebSocket(
+    wsUrl,
+    handleWebSocketMessage,
+    shouldReconnect
+  );
 
   return { sendMessage, socket };
 }
