@@ -10,18 +10,23 @@ const QuizList = () => {
   const navigate = useNavigate();
 
   const [quizzes, setQuizzes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  const [fetchStatus, setFetchStatus] = useState({
+    loading: true,
+    error: "",
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [ordering, setOrdering] = useState("-created_at");
 
+  const { loading, error } = fetchStatus;
+
   useEffect(() => {
     const fetchQuizzes = async () => {
-      setLoading(true);
-      setError("");
+      setFetchStatus((prev) => ({ ...prev, loading: true, error: "" }));
+
       try {
         const response = await axios.get("/quizzes/", {
           params: {
@@ -30,16 +35,23 @@ const QuizList = () => {
             ordering: ordering,
           },
         });
+
         setQuizzes(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } catch (err) {
-        setError(t("Failed to load quizzes."));
+        setFetchStatus((prev) => ({
+          ...prev,
+          loading: false,
+          error: t("Failed to load quizzes."),
+        }));
+
         if (err.response && err.response.status === 401) {
           navigate("/login");
         }
-      } finally {
-        setLoading(false);
+        return;
       }
+
+      setFetchStatus((prev) => ({ ...prev, loading: false, error: "" }));
     };
 
     void fetchQuizzes();

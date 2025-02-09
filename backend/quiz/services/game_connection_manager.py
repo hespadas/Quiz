@@ -22,7 +22,6 @@ class ConnectionManager:
         logger.info(f"Usuário {username} conectado à sala {self.room_code}. Grupo atualizado.")
 
     async def remove_connection(self, username, channel_layer, room_group_name, channel_name):
-        """ Remove um usuário da sala e do grupo do WebSocket """
         room_connections = self.cache_manager.get_room_user_connections()
         if username in room_connections:
             room_connections[username] -= 1
