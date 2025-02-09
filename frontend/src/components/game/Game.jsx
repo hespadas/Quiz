@@ -29,6 +29,8 @@ const Game = () => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
 
+  const sendMessageRef = useRef();
+
   const submitQuiz = useCallback(async () => {
     try {
       const response = await axios.post(
@@ -43,7 +45,7 @@ const Game = () => {
 
       setScore(response.data);
 
-      sendMessage({
+      sendMessageRef.current({
         type: "user_score",
         username: user.username,
         score: response.data.score,
@@ -107,6 +109,10 @@ const Game = () => {
   );
 
   const { sendMessage } = useWebSocket(wsUrl, handleWebSocketMessage);
+
+  useEffect(() => {
+    sendMessageRef.current = sendMessage;
+  }, [sendMessage]);
 
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
