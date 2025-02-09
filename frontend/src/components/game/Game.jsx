@@ -4,7 +4,6 @@ import React, {
   useState,
   useRef,
   useCallback,
-  useMemo,
 } from "react";
 import axios from "../../services/axiosConfig";
 import { useParams } from "react-router-dom";
@@ -14,6 +13,8 @@ import { AuthContext } from "../auth/AuthContext";
 import useGameWebSocket from "../../hooks/useGameWebSocket";
 import useGameRoom from "../../hooks/useGameRoom";
 
+import useQuizProgress from "../../hooks/useQuizProgress";
+
 const Game = () => {
   const { t } = useTranslation();
   const { code } = useParams();
@@ -21,7 +22,6 @@ const Game = () => {
 
   const { gameRoom, error } = useGameRoom(code);
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [score, setScore] = useState(null);
   const [finalScores, setFinalScores] = useState(null);
@@ -34,6 +34,7 @@ const Game = () => {
   const submitQuiz = useCallback(async () => {
     try {
       if (!gameRoom) return;
+
       const response = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
         { answers: selectedOptionsRef.current },
@@ -89,17 +90,14 @@ const Game = () => {
     handleWebSocketMessage
   );
 
-  useEffect(() => {
-    if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
-      submitQuiz();
-    }
-  }, [currentQuestionIndex, gameRoom, submitQuiz]);
-
-  const questions = useMemo(() => gameRoom?.quiz?.questions || [], [gameRoom]);
-  const currentQuestion = useMemo(
-    () => questions[currentQuestionIndex] || {},
-    [questions, currentQuestionIndex]
-  );
+  const {
+    currentQuestionIndex,
+    currentQuestion,
+    questions,
+    handleNextQuestion,
+    handlePreviousQuestion,
+    setCurrentQuestionIndex,
+  } = useQuizProgress(gameRoom, submitQuiz, sendMessage);
 
   const handleOptionSelect = useCallback(
     (optionId) => {
@@ -111,28 +109,6 @@ const Game = () => {
     },
     [gameRoom, currentQuestion]
   );
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      sendMessage({
-        type: "advance_question",
-        question_index: currentQuestionIndex + 1,
-      });
-    } else {
-      sendMessage({
-        type: "quiz_finished",
-      });
-    }
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      sendMessage({
-        type: "advance_question",
-        question_index: currentQuestionIndex - 1,
-      });
-    }
-  };
 
   if (!gameRoom) {
     return <p>{error || t("Carregando sala de jogo...")}</p>;
