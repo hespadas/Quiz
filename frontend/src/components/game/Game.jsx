@@ -131,7 +131,7 @@ const Game = () => {
     [gameRoom, currentQuestion]
   );
 
-  const handleNextQuestion = useCallback(() => {
+  const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       const nextIndex = currentQuestionIndex + 1;
       sendMessage({
@@ -143,9 +143,9 @@ const Game = () => {
         type: "quiz_finished",
       });
     }
-  }, [currentQuestionIndex, questions, sendMessage]);
+  };
 
-  const handlePreviousQuestion = useCallback(() => {
+  const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       const prevIndex = currentQuestionIndex - 1;
       sendMessage({
@@ -153,7 +153,7 @@ const Game = () => {
         question_index: prevIndex,
       });
     }
-  }, [currentQuestionIndex, sendMessage]);
+  };
 
   if (!gameRoom) {
     return <p>{error || t("Carregando sala de jogo...")}</p>;
