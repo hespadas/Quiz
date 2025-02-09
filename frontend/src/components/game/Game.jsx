@@ -11,7 +11,7 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { AuthContext } from "../auth/AuthContext";
-import useWebSocket from "../../hooks/useWebSocket";
+import useGameWebSocket from "../../hooks/useGameWebSocket";
 
 const Game = () => {
   const { t } = useTranslation();
@@ -29,8 +29,6 @@ const Game = () => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
 
-  const sendMessageRef = useRef();
-
   const submitQuiz = useCallback(async () => {
     try {
       const response = await axios.post(
@@ -44,8 +42,7 @@ const Game = () => {
       );
 
       setScore(response.data);
-
-      sendMessageRef.current({
+      sendMessage({
         type: "user_score",
         username: user.username,
         score: response.data.score,
@@ -76,24 +73,13 @@ const Game = () => {
         const response = await axios.get(`/game_rooms/${code}/`);
         setGame(response.data);
       } catch (err) {
-        console.error(
-          "[Frontend] Erro ao buscar a sala de jogo:",
-          err.response || err.message
-        );
+        console.error("[Frontend] Erro ao buscar a sala de jogo:", err);
         setError(t("Erro ao buscar a sala de jogo."));
         toast.error(t("Erro ao buscar a sala de jogo."));
       }
     };
     void fetchGame();
   }, [code, t]);
-
-  const wsUrl = useMemo(() => {
-    if (!gameRoom) return null;
-    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const backendHost = process.env.REACT_APP_BACKEND_HOST || "localhost";
-    const backendPort = process.env.REACT_APP_BACKEND_PORT || "8000";
-    return `${wsProtocol}://${backendHost}:${backendPort}/ws/game_rooms/${code}/`;
-  }, [gameRoom, code]);
 
   const handleWebSocketMessage = useCallback(
     (data) => {
@@ -108,11 +94,11 @@ const Game = () => {
     [submitQuiz]
   );
 
-  const { sendMessage } = useWebSocket(wsUrl, handleWebSocketMessage);
-
-  useEffect(() => {
-    sendMessageRef.current = sendMessage;
-  }, [sendMessage]);
+  const { sendMessage } = useGameWebSocket(
+    gameRoom,
+    code,
+    handleWebSocketMessage
+  );
 
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
@@ -139,10 +125,9 @@ const Game = () => {
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
-      const nextIndex = currentQuestionIndex + 1;
       sendMessage({
         type: "advance_question",
-        question_index: nextIndex,
+        question_index: currentQuestionIndex + 1,
       });
     } else {
       sendMessage({
@@ -153,10 +138,9 @@ const Game = () => {
 
   const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
-      const prevIndex = currentQuestionIndex - 1;
       sendMessage({
         type: "advance_question",
-        question_index: prevIndex,
+        question_index: currentQuestionIndex - 1,
       });
     }
   };
