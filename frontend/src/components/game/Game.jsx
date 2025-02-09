@@ -12,15 +12,17 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { AuthContext } from "../auth/AuthContext";
 import useGameWebSocket from "../../hooks/useGameWebSocket";
+import useGameRoom from "../../hooks/useGameRoom";
 
 const Game = () => {
   const { t } = useTranslation();
   const { code } = useParams();
   const { user } = useContext(AuthContext);
-  const [gameRoom, setGame] = useState(null);
+
+  const { gameRoom, error } = useGameRoom(code);
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
-  const [error, setError] = useState(null);
   const [score, setScore] = useState(null);
   const [finalScores, setFinalScores] = useState(null);
 
@@ -31,6 +33,7 @@ const Game = () => {
 
   const submitQuiz = useCallback(async () => {
     try {
+      if (!gameRoom) return;
       const response = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
         { answers: selectedOptionsRef.current },
@@ -66,20 +69,6 @@ const Game = () => {
       }
     }
   }, [gameRoom, t, user]);
-
-  useEffect(() => {
-    const fetchGame = async () => {
-      try {
-        const response = await axios.get(`/game_rooms/${code}/`);
-        setGame(response.data);
-      } catch (err) {
-        console.error("[Frontend] Erro ao buscar a sala de jogo:", err);
-        setError(t("Erro ao buscar a sala de jogo."));
-        toast.error(t("Erro ao buscar a sala de jogo."));
-      }
-    };
-    void fetchGame();
-  }, [code, t]);
 
   const handleWebSocketMessage = useCallback(
     (data) => {
