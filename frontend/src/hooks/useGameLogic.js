@@ -23,27 +23,17 @@ const useGameLogic = () => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
 
-  const submitQuiz = useSubmitQuiz(
-    gameRoom,
-    selectedOptionsRef,
-    user,
-    () => sendMessage({ type: "quiz_finished" }),
-    setScore
-  );
+  const [quizFinished, setQuizFinished] = useState(false);
 
-  const handleWebSocketMessage = useCallback(
-    (data) => {
-      if (data.type === "quiz_finished") {
-        submitQuiz();
-        setGameOver(true);
-      } else if (data.type === "question_advanced") {
-        setCurrentQuestionIndex(data.question_index);
-      } else if (data.type === "scores_update") {
-        setFinalScores(data.scores);
-      }
-    },
-    [submitQuiz, setCurrentQuestionIndex, setFinalScores] // ✅ Agora `submitQuiz` já foi definido
-  );
+  const handleWebSocketMessage = useCallback((data) => {
+    if (data.type === "quiz_finished") {
+      setQuizFinished(true);
+    } else if (data.type === "question_advanced") {
+      setCurrentQuestionIndex(data.question_index);
+    } else if (data.type === "scores_update") {
+      setFinalScores(data.scores);
+    }
+  }, []);
 
   const { sendMessage, socket } = useGameWebSocket(
     gameRoom,
@@ -51,6 +41,21 @@ const useGameLogic = () => {
     handleWebSocketMessage,
     !gameOver
   );
+
+  const submitQuiz = useSubmitQuiz(
+    gameRoom,
+    selectedOptionsRef,
+    user,
+    sendMessage,
+    setScore
+  );
+
+  useEffect(() => {
+    if (quizFinished) {
+      submitQuiz();
+      setGameOver(true);
+    }
+  }, [quizFinished, submitQuiz]);
 
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
