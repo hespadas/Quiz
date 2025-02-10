@@ -1,5 +1,5 @@
 // src/services/__tests__/axiosConfig.test.js
-import axios from "../axiosConfig";
+import axios from "../../services/axiosConfig";
 import MockAdapter from "axios-mock-adapter";
 
 describe("Axios Configuration", () => {

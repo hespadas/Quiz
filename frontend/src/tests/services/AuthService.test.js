@@ -1,8 +1,8 @@
 // src/services/__tests__/authService.test.js
-import authService from "../authService";
-import axios from "../axiosConfig";
+import authService from "../../services/authService";
+import axios from "../../services/axiosConfig";
 
-jest.mock("../axiosConfig");
+jest.mock("../../services/axiosConfig");
 
 describe("authService", () => {
   afterEach(() => {

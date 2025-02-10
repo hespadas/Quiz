@@ -1,8 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import useGameLogic from "../../hooks/useGameLogic";
-import Question from "./Question";
-import Scoreboard from "./Scoreboard";
+import Scoreboard from "./components/Scoreboard";
+import Question from "./components/Question";
 
 const Game = () => {
   const { t } = useTranslation();

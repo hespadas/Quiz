@@ -1,21 +1,24 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./components/auth/AuthContext";
-import { Navigation } from "./components/navigation/Navigation";
-import { Home } from "./components/quiz/Home";
+
 import { Login } from "./components/auth/Login";
 import { Logout } from "./components/auth/Logout";
-import Register from "./components/accounts/Register";
-import Creation from "./components/quiz/Creation";
+
 import "./i18n/i18n";
-import List from "./components/quiz/List";
-import Detail from "./components/quiz/Detail";
-import Edit from "./components/quiz/Edit";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import GameRoom from "./components/game/Game";
-import Lobby from "./components/lobby/Lobby";
-import CreateLobby from "./components/lobby/CreateLobby";
-import JoinLobby from "./components/lobby/JoinLobby";
+import { Navigation } from "./components/layout/Navigation";
+import Home from "./pages/Home/Home";
+import Register from "./pages/Register/Register";
+import Creation from "./pages/QuizCreate/Creation";
+import List from "./pages/QuizList/List";
+import Detail from "./pages/QuizDetail/Detail";
+import Edit from "./pages/QuizEdit/Edit";
+import JoinLobby from "./pages/LobbyJoin/JoinLobby";
+import Lobby from "./pages/Lobby/Lobby";
+import CreateLobby from "./pages/LobbyCreate/CreateLobby";
+import GameRoom from "./pages/Game/Game";
 
 function App() {
   return (

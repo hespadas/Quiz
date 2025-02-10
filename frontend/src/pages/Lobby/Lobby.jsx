@@ -7,10 +7,11 @@ import React, {
 } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AuthContext } from "../auth/AuthContext";
+
 import axios from "../../services/axiosConfig";
 import { toast } from "react-toastify";
 import useWebSocket from "../../hooks/useWebSocket";
+import { AuthContext } from "../../components/auth/AuthContext";
 
 const Lobby = () => {
   const { t } = useTranslation();

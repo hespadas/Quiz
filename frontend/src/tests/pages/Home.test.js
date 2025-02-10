@@ -1,10 +1,11 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { Home } from "../Home";
-import axios from "../../../services/axiosConfig";
-import { useNavigate } from "react-router-dom";
+import axios from "../../services/axiosConfig";
 
-jest.mock("../../../services/axiosConfig");
+import { useNavigate } from "react-router-dom";
+import Home from "../../pages/Home/Home";
+
+jest.mock("../../services/axiosConfig");
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: jest.fn(),

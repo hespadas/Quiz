@@ -4,7 +4,10 @@ import React from "react";
 import { render, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import authService from "../../../services/authService";
-import { AuthContext, AuthProvider } from "../AuthContext";
+import {
+  AuthContext,
+  AuthProvider,
+} from "../../../components/auth/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
 jest.mock("../../../services/authService", () => ({
@@ -36,6 +39,7 @@ describe("AuthContext", () => {
     render(
       <MemoryRouter>
         <AuthProvider>
+          {/* eslint-disable-next-line react/jsx-no-undef */}
           <AuthContext.Consumer>
             {(value) => {
               contextValue = value;

@@ -1,8 +1,8 @@
 import { render, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import authService from "../../../services/authService";
-import { AuthContext } from "../AuthContext";
-import { Logout } from "../Logout";
+import { AuthContext } from "../../../components/auth/AuthContext";
+import { Logout } from "../../../components/auth/Logout";
 
 jest.mock("../../../services/authService", () => ({
   logout: jest.fn(),

@@ -14,7 +14,6 @@ export function Navigation() {
         <div className="flex space-x-4 items-center">
           {isAuth && (
             <>
-              {/* If we have a user object, show username: */}
               {user && (
                 <span className="text-sm font-semibold mr-4">
                   {t("Hello")}, {user.username}!

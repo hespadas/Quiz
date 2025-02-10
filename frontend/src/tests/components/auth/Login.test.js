@@ -1,8 +1,9 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { AuthProvider } from "../AuthContext";
-import { Login } from "../Login";
+import { AuthProvider } from "../../../components/auth/AuthContext";
+
 import authService from "../../../services/authService";
+import { Login } from "../../../components/auth/Login";
 
 jest.mock("../../../services/authService");
 
