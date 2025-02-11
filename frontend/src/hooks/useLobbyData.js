@@ -1,6 +1,6 @@
 // useLobbyData.js
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "../services/axiosConfig";
 import { toast } from "react-toastify";
 
 export function useLobbyData(code, navigate) {
