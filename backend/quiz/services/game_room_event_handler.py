@@ -1,10 +1,7 @@
 import asyncio
 import json
-import logging
 
 from quiz.services.score_manager import ScoreManager
-
-logger = logging.getLogger(__name__)
 
 
 class GameRoomEventHandler:
@@ -22,8 +19,6 @@ class GameRoomEventHandler:
             await self.handle_user_score(data)
         elif event_type == "quiz_finished":
             await self.handle_quiz_finished(data)
-        else:
-            logger.warning(f"Unhandled event type: {event_type}")
 
     async def handle_advance_question(self, data):
         score_manager = ScoreManager(self.room_code)
@@ -69,7 +64,6 @@ class GameRoomEventHandler:
         score_manager = ScoreManager(self.room_code)
         all_scores = score_manager.get_scores()
 
-        logger.info(f"Broadcasting scores for room {self.room_code}: {all_scores}")
         await self.channel_layer.group_send(
             self.room_group_name,
             {"type": "scores_update_message", "scores": all_scores}

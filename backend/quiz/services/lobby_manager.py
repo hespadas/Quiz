@@ -24,7 +24,6 @@ class LobbyManager:
         lobby_data = cls._lobbies.get(code)
         if lobby_data and username in lobby_data["users"]:
             lobby_data["users"].remove(username)
-            # Clean up if no users remain
             if not lobby_data["users"]:
                 del cls._lobbies[code]
 
@@ -52,10 +51,6 @@ class LobbyManager:
 
     @classmethod
     async def initialize_real_host(cls, code):
-        """
-        Uses the GameService to fetch the real host for the given lobby code.
-        Once found, sets it in the lobby state. If no host found, returns None.
-        """
         real_host_username = await GameService.get_game_host_username(code)
         if real_host_username:
             cls.set_real_host(code, real_host_username)
@@ -63,7 +58,4 @@ class LobbyManager:
 
     @classmethod
     def user_is_host(cls, code, user):
-        """
-        Checks if the given user is the current real host for this lobby.
-        """
         return user.username == cls.get_real_host(code)

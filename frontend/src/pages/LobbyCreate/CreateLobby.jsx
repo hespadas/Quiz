@@ -16,7 +16,6 @@ const CreateLobby = () => {
         const response = await axios.get("/quizzes/");
         setAvailableQuizzes(response.data.results);
       } catch (error) {
-        console.error("Error fetching quizzes:", error);
         toast.error(t("Error fetching quizzes."));
       }
     };
@@ -33,7 +32,6 @@ const CreateLobby = () => {
       toast.success(t("Game room created! Code: ") + gameRoom.code);
       navigate(`/lobby/${gameRoom.code}/`);
     } catch (error) {
-      console.error("Error creating game room:", error);
       toast.error(t("Error creating game room."));
     }
   };

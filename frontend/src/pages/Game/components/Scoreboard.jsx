@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 const Scoreboard = ({ finalScores, host }) => {
   const { t } = useTranslation();
 
-  // Filtra o host para não exibir na lista de pontuação
   const filteredScores = finalScores.filter((item) => item.username !== host);
 
   return (

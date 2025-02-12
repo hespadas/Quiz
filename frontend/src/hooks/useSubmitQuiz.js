@@ -34,19 +34,11 @@ const useSubmitQuiz = (
         total: response.data.total,
       });
     } catch (error) {
-      console.error(
-        `[Frontend] O usuário ${user?.username} falhou ao enviar as respostas`,
-        error
-      );
-
       if (error.response) {
-        console.error("Erro do backend:", error.response.data);
         toast.error(error.response.data.message || t("Erro ao enviar quiz."));
       } else if (error.request) {
-        console.error("Sem resposta do backend:", error.request);
         toast.error(t("Erro de rede. Por favor, tente novamente."));
       } else {
-        console.error("Erro:", error.message);
         toast.error(t("Ocorreu um erro inesperado."));
       }
     }

@@ -16,9 +16,8 @@ export default function useGameRoom(code) {
         const response = await axios.get(`/game_rooms/${code}/`);
         setGameRoom(response.data);
       } catch (err) {
-        console.error("[Frontend] Erro ao buscar a sala de jogo:", err);
-        setError(t("Erro ao buscar a sala de jogo."));
-        toast.error(t("Erro ao buscar a sala de jogo."));
+        setError(t("Error searching for game room."));
+        toast.error(t("Error searching for game room."));
       }
     };
 

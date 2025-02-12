@@ -1,6 +1,3 @@
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class ConnectionManager:
@@ -19,7 +16,6 @@ class ConnectionManager:
 
         self.cache_manager.set_room_user_connections(room_connections)
         await channel_layer.group_add(room_group_name, channel_name)
-        logger.info(f"Usuário {username} conectado à sala {self.room_code}. Grupo atualizado.")
 
     async def remove_connection(self, username, channel_layer, room_group_name, channel_name):
         room_connections = self.cache_manager.get_room_user_connections()
@@ -32,4 +28,3 @@ class ConnectionManager:
 
         self.cache_manager.set_room_user_connections(room_connections)
         await channel_layer.group_discard(room_group_name, channel_name)
-        logger.info(f"Usuário {username} desconectado da sala {self.room_code}.")

@@ -12,7 +12,6 @@ export function useLobbyData(code, navigate) {
       .get(`/game_rooms/${code}/`)
       .then((response) => setGameInfo(response.data))
       .catch((err) => {
-        console.error("[Lobby] Erro ao carregar dados:", err);
         toast.error("Falha ao carregar o lobby.");
         setGameInfo(null);
         navigate("/");

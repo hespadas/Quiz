@@ -45,9 +45,7 @@ const useWebSocket = (url, onMessage, shouldReconnect = true) => {
       };
 
       ws.onclose = () => {
-        console.warn("[WebSocket] Conexão fechada.");
         if (shouldReconnect) {
-          console.warn("Tentando reconectar...");
           setTimeout(() => connectWebSocket(), 2000);
         }
       };
@@ -73,9 +71,6 @@ const useWebSocket = (url, onMessage, shouldReconnect = true) => {
       ) {
         socketRef.current.send(JSON.stringify(message));
       } else {
-        console.error(
-          "[WebSocket] Não foi possível enviar a mensagem: conexão não estabelecida."
-        );
         toast.error("Conexão perdida. Reconectando...");
         connectWebSocket();
       }
