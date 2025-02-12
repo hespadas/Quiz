@@ -1,3 +1,7 @@
+
+from quiz.services.game_service import GameService
+
+
 class LobbyManager:
     _lobbies = {}
 
@@ -44,3 +48,14 @@ class LobbyManager:
     @classmethod
     def has_lobby(cls, code):
         return code in cls._lobbies
+
+    @classmethod
+    async def initialize_real_host(cls, code):
+        real_host_username = await GameService.get_game_host_username(code)
+        if real_host_username:
+            cls.set_real_host(code, real_host_username)
+        return real_host_username
+
+    @classmethod
+    def user_is_host(cls, code, user):
+        return user.username == cls.get_real_host(code)

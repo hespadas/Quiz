@@ -1,0 +1,73 @@
+import { useContext } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { AuthContext } from "../auth/AuthContext";
+import { useTranslation } from "react-i18next";
+
+export function Navigation() {
+  const { t } = useTranslation();
+  const { isAuth, user } = useContext(AuthContext); // <--- get 'user' here
+  const location = useLocation();
+
+  return (
+    <div className="bg-gray-900 text-white">
+      <nav className="container mx-auto flex justify-between items-center p-4">
+        <div className="flex space-x-4 items-center">
+          {isAuth && (
+            <>
+              {user && (
+                <span className="text-sm font-semibold mr-4">
+                  {t("Hello")}, {user.username}!
+                </span>
+              )}
+              <Link to="/" className="text-white hover:text-gray-400">
+                {t("home")}
+              </Link>
+              <Link
+                to="/create-quiz"
+                className="text-white hover:text-gray-400"
+              >
+                {t("Create Quiz")}
+              </Link>
+              <Link to="/quizzes" className="text-white hover:text-gray-400">
+                {t("Quiz List")}
+              </Link>
+              <Link
+                to="/lobby/join/"
+                className="text-white hover:text-gray-400"
+              >
+                {t("Join Lobby")}
+              </Link>
+              <Link
+                to="/lobby/create"
+                className="text-white hover:text-gray-400"
+              >
+                {t("Create Lobby")}
+              </Link>
+            </>
+          )}
+        </div>
+
+        <div>
+          {isAuth ? (
+            <Link to="/logout" className="text-white hover:text-gray-400">
+              {t("logout")}
+            </Link>
+          ) : (
+            <>
+              {location.pathname !== "/login" && (
+                <Link to="/login" className="text-white hover:text-gray-400">
+                  {t("login")}
+                </Link>
+              )}
+              {location.pathname !== "/register" && (
+                <Link to="/register" className="text-white hover:text-gray-400">
+                  {t("register")}
+                </Link>
+              )}
+            </>
+          )}
+        </div>
+      </nav>
+    </div>
+  );
+}

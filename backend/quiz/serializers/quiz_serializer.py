@@ -20,6 +20,7 @@ class QuizSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     questions = QuestionSerializer(many=True)
     created_by = serializers.StringRelatedField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Quiz

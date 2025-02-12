@@ -1,12 +1,13 @@
 import { useEffect, useRef, useCallback } from "react";
 import { toast } from "react-toastify";
 
-const useWebSocket = (url, onMessage) => {
+const useWebSocket = (url, onMessage, shouldReconnect = true) => {
   const socketRef = useRef(null);
 
   const connectWebSocket = useCallback(
     (attempt = 1) => {
-      if (!url) return; // Se a URL não estiver definida, não conecta.
+      if (!url || !shouldReconnect) return;
+
       if (
         socketRef.current &&
         socketRef.current.readyState === WebSocket.OPEN
@@ -23,7 +24,7 @@ const useWebSocket = (url, onMessage) => {
 
       ws.onerror = (error) => {
         console.error("[WebSocket] Erro:", error);
-        if (attempt < 5) {
+        if (attempt < 5 && shouldReconnect) {
           setTimeout(() => connectWebSocket(attempt + 1), attempt * 1000);
         } else {
           toast.error(
@@ -44,11 +45,12 @@ const useWebSocket = (url, onMessage) => {
       };
 
       ws.onclose = () => {
-        console.warn("[WebSocket] Conexão fechada. Tentando reconectar...");
-        setTimeout(() => connectWebSocket(), 2000);
+        if (shouldReconnect) {
+          setTimeout(() => connectWebSocket(), 2000);
+        }
       };
     },
-    [url, onMessage]
+    [url, onMessage, shouldReconnect]
   );
 
   useEffect(() => {
@@ -69,9 +71,6 @@ const useWebSocket = (url, onMessage) => {
       ) {
         socketRef.current.send(JSON.stringify(message));
       } else {
-        console.error(
-          "[WebSocket] Não foi possível enviar a mensagem: conexão não estabelecida."
-        );
         toast.error("Conexão perdida. Reconectando...");
         connectWebSocket();
       }
