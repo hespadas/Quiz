@@ -17,6 +17,7 @@ const useGameLogic = () => {
   const [score, setScore] = useState(null);
   const [finalScores, setFinalScores] = useState(null);
   const [gameOver, setGameOver] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedOptionsRef = useRef(selectedOptions);
   useEffect(() => {
@@ -47,7 +48,8 @@ const useGameLogic = () => {
     selectedOptionsRef,
     user,
     sendMessage,
-    setScore
+    setScore,
+    setIsSubmitting
   );
 
   useEffect(() => {
@@ -82,6 +84,7 @@ const useGameLogic = () => {
     sendMessage,
     user,
     gameOver,
+    isSubmitting,
   };
 };
 

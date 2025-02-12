@@ -9,13 +9,15 @@ const useSubmitQuiz = (
   selectedOptionsRef,
   user,
   sendMessage,
-  setScore
+  setScore,
+  setIsSubmitting
 ) => {
   const { t } = useTranslation();
 
   return useCallback(async () => {
+    if (!gameRoom) return;
+    setIsSubmitting(true);
     try {
-      if (!gameRoom) return;
       const response = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
         { answers: selectedOptionsRef.current },
@@ -25,7 +27,6 @@ const useSubmitQuiz = (
           },
         }
       );
-
       setScore(response.data);
       sendMessage({
         type: "user_score",
@@ -41,8 +42,18 @@ const useSubmitQuiz = (
       } else {
         toast.error(t("Ocorreu um erro inesperado."));
       }
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [gameRoom, selectedOptionsRef, user, sendMessage, setScore, t]);
+  }, [
+    gameRoom,
+    selectedOptionsRef,
+    user,
+    sendMessage,
+    setScore,
+    setIsSubmitting,
+    t,
+  ]);
 };
 
 export default useSubmitQuiz;

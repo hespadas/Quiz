@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import useGameLogic from "../../hooks/useGameLogic";
 import Scoreboard from "./components/Scoreboard";
 import Question from "./components/Question";
+import WaitScreen from "./components/WaitScreen";
 
 const Game = () => {
   const { t } = useTranslation();
@@ -17,10 +18,15 @@ const Game = () => {
     finalScores,
     sendMessage,
     user,
+    isSubmitting,
   } = useGameLogic();
 
   if (!gameRoom) {
     return <p>{error || t("Carregando sala de jogo...")}</p>;
+  }
+
+  if (isSubmitting) {
+    return <WaitScreen message="Carregando resultados, por favor aguarde..." />;
   }
 
   if (score !== null && finalScores) {
