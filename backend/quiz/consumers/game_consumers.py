@@ -69,8 +69,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             "question_index": event["question_index"],
         }))
 
-    async def quiz_finished(self, event):
-
+    async def quiz_finished(self):
         logger.info(f"Received group quiz_finished event in room {self.room_code}")
         await self.send(text_data=json.dumps({"type": "quiz_finished"}))
 

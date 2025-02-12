@@ -1,20 +1,18 @@
-# quiz/consumers/lobby_consumers.py
 import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from quiz.services.game_service import GameService
 from quiz.services.lobby_manager import LobbyManager
 
 
 class LobbyConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
+        super().__init__(*args, **kwargs)
         self.code = None
 
     async def connect(self):
-        self.code = self.scope['url_route']['kwargs']['code']
-        user = self.scope['user']
+        self.code = self.scope["url_route"]["kwargs"]["code"]
+        user = self.scope["user"]
         if not user.is_authenticated:
             await self.close()
             return
@@ -23,18 +21,17 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
         LobbyManager.add_user(self.code, user.username)
 
-        real_host_username = await GameService.get_game_host_username(self.code)
+        real_host_username = await LobbyManager.initialize_real_host(self.code)
         if not real_host_username:
             await self.close()
             return
 
-        LobbyManager.set_real_host(self.code, real_host_username)
-
         await self.channel_layer.group_add(self.code, self.channel_name)
+
         await self.send_user_list()
 
     async def disconnect(self, close_code):
-        user = self.scope['user']
+        user = self.scope["user"]
         if user.is_authenticated:
             await self.channel_layer.group_discard(self.code, self.channel_name)
 
@@ -45,15 +42,15 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                     await self.send_user_list(safe=True)
 
     async def receive(self, text_data=None, bytes_data=None):
-        user = self.scope['user']
+        user = self.scope["user"]
         if not user.is_authenticated:
             return
 
         data = json.loads(text_data)
-        message_type = data.get('type')
+        message_type = data.get("type")
 
         if message_type == "start_game":
-            if user.username == LobbyManager.get_real_host(self.code):
+            if LobbyManager.user_is_host(self.code, user):
                 await self.channel_layer.group_send(
                     self.code,
                     {
