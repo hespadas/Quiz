@@ -1,9 +1,6 @@
 # services/game_room_cache.py
-import logging
 
 from django.core.cache import cache
-
-logger = logging.getLogger(__name__)
 
 
 class GameRoomCache:
@@ -22,10 +19,10 @@ class GameRoomCache:
         self._initialize_cache(self.submitted_users_key, set())
         self._initialize_cache(self.room_user_connections_key, {})
 
-    def _initialize_cache(self, key, default_value):
+    @staticmethod
+    def _initialize_cache(key, default_value):
         if cache.get(key) is None:
             cache.set(key, default_value)
-            logger.debug(f"Initialized {key} with default: {default_value} for room {self.room_code}")
 
     def get_scores(self):
         return cache.get(self.scores_key, {})
