@@ -36,11 +36,11 @@ const useSubmitQuiz = (
       });
     } catch (error) {
       if (error.response) {
-        toast.error(error.response.data.message || t("Erro ao enviar quiz."));
+        toast.error(error.response.data.message || t("Error submitting quiz."));
       } else if (error.request) {
-        toast.error(t("Erro de rede. Por favor, tente novamente."));
+        toast.error(t("Network error. Please try again."));
       } else {
-        toast.error(t("Ocorreu um erro inesperado."));
+        toast.error(t("An unexpected error has occurred."));
       }
     } finally {
       setIsSubmitting(false);

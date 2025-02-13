@@ -42,7 +42,7 @@ function Register() {
       );
       const data = await response.json();
       if (response.ok) {
-        setMessage(t("user created"));
+        setMessage(t("User created"));
         setTimeout(() => {
           navigate("/home");
         }, 2500);

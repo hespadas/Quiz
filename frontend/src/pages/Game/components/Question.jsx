@@ -22,7 +22,7 @@ const Question = ({
   return (
     <div className="my-4">
       <h4 className="text-lg font-medium">
-        {t("Pergunta")} {currentQuestionIndex + 1}/{questions.length}
+        {t("Question")} {currentQuestionIndex + 1}/{questions.length}
       </h4>
       <p>{currentQuestion.text}</p>
       <div className="flex flex-col gap-2 my-4">

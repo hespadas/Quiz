@@ -38,7 +38,7 @@ const Lobby = () => {
           navigate(`/game_rooms/${code}/`);
           break;
         default:
-          console.warn("[Lobby] Mensagem WebSocket não tratada:", data);
+          console.warn("[Lobby] Unhandled WebSocket message:", data);
       }
     },
     [code, navigate]

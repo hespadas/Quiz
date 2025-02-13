@@ -19,7 +19,7 @@ const useWebSocket = (url, onMessage, shouldReconnect = true) => {
 
       ws.onopen = () => {
         socketRef.current = ws;
-        console.info("[WebSocket] Conexão estabelecida.");
+        console.info("[WebSocket] Connection established.");
       };
 
       ws.onerror = (error) => {
@@ -27,9 +27,7 @@ const useWebSocket = (url, onMessage, shouldReconnect = true) => {
         if (attempt < 5 && shouldReconnect) {
           setTimeout(() => connectWebSocket(attempt + 1), attempt * 1000);
         } else {
-          toast.error(
-            "Falha na conexão do WebSocket após múltiplas tentativas."
-          );
+          toast.error("WebSocket connection failed after multiple attempts.");
         }
       };
 
@@ -40,7 +38,7 @@ const useWebSocket = (url, onMessage, shouldReconnect = true) => {
             onMessage(data);
           }
         } catch (err) {
-          console.error("[WebSocket] Erro ao parsear mensagem:", err);
+          console.error("[WebSocket] Error parsing message:", err);
         }
       };
 
@@ -71,7 +69,7 @@ const useWebSocket = (url, onMessage, shouldReconnect = true) => {
       ) {
         socketRef.current.send(JSON.stringify(message));
       } else {
-        toast.error("Conexão perdida. Reconectando...");
+        toast.error("Connection lost. Reconnecting...");
         connectWebSocket();
       }
     },
