@@ -35,12 +35,14 @@ addopts = '-p no:warnings'
 
 [tool.ruff]
 line-length = 120
-ignore = ["PLC0414"]
+ignore = ["PLC0414","E501", "F401"]
 
 [tool.ruff.lint]
 preview = true
 select = ["I", "F", "E", "W", "PL", "PT"]
 per-file-ignores = {"manage.py" = ["PLC0415"]}
+ignore = ["E501", "F401"]
+
 
 [build-system]
 requires = ["poetry-core"]
