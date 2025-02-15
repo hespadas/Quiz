@@ -43,7 +43,7 @@ describe("Register component", () => {
 
     fireEvent.click(screen.getByText("submit"));
 
-    await screen.findByText("User created");
+    await screen.findByText("User created successfully, confirm your email");
   });
 
   test("displays error message on failed registration", async () => {

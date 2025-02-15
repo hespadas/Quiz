@@ -1,5 +1,6 @@
 from logging import getLogger
 
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -12,11 +13,18 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .managers import CookieManager
 from .services import TokenBlacklistService
 
-logger = getLogger(__name__)
+User = get_user_model()
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
+        username = request.data.get("username")
+        user = User.objects.filter(username=username).first()
+        if user and not user.email_verified:
+            return Response(
+                {"detail": "Email not verified"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         try:
             response = super().post(request, *args, **kwargs)
             if response.status_code == status.HTTP_200_OK:
@@ -28,8 +36,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 CookieManager.set_refresh_token_cookie(response, refresh_token)
                 response.data["access_token_exp"] = access_token_exp
             return response
-        except Exception as e:
-            logger.error(f"Login Error: {e}")
+        except Exception:
             return Response(
                 {"detail": "No active account found with the given credentials"},
                 status=status.HTTP_401_UNAUTHORIZED
@@ -69,21 +76,12 @@ class CustomTokenRefreshView(TokenRefreshView):
 class LogoutView(APIView):
     @staticmethod
     def post(request):
-        try:
-            refresh_token = request.COOKIES.get("refresh_token")
-            if refresh_token:
-                try:
-                    TokenBlacklistService.blacklist_token(refresh_token)
-                except Exception:
-                    logger.info("Token at blacklist, continuing.")
-
-            response = Response(status=status.HTTP_205_RESET_CONTENT)
-            CookieManager.delete_token_cookies(response)
-            return response
-        except Exception as e:
-            logger.error(f"Logout Error: {e}")
-            return Response({"detail": "Logout Error"},
-                            status=status.HTTP_400_BAD_REQUEST)
+        refresh_token = request.COOKIES.get("refresh_token")
+        if refresh_token:
+            TokenBlacklistService.blacklist_token(refresh_token)
+        response = Response(status=status.HTTP_205_RESET_CONTENT)
+        CookieManager.delete_token_cookies(response)
+        return response
 
 
 @permission_classes([IsAuthenticated])
