@@ -14,7 +14,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      if (location.pathname === "/login" || location.pathname === "/register") {
+      if (
+        location.pathname === "/login" ||
+        location.pathname === "/register" ||
+        location.pathname === "/confirm-email"
+      ) {
         setIsAuth(false);
         setUser(null);
         return;

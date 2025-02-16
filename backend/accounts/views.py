@@ -10,9 +10,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.serializers.register_serializer import UserRegistrationSerializer
-from accounts.utils.email import send_confirmation_email
+from accounts.utils.email import EmailService
 
 User = get_user_model()
+
+
+def get_user_from_uid(uidb64):
+    uid = urlsafe_base64_decode(uidb64).decode()
+    print("DEBUG - Generated UID:", uid)
+    return get_object_or_404(User, pk=uid)
 
 
 class RegisterUserView(APIView):
@@ -28,7 +34,7 @@ class RegisterUserView(APIView):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            send_confirmation_email(user)
+            EmailService.send_confirmation_email(user)
             return Response(
                 {"message": _("User created successfully, confirm your email")},
                 status=status.HTTP_201_CREATED
@@ -39,26 +45,23 @@ class RegisterUserView(APIView):
 class ConfirmEmailView(APIView):
     @staticmethod
     def get(request, uidb64, token):
-        try:
-            uid = urlsafe_base64_decode(uidb64).decode()
-            user = get_object_or_404(User, pk=uid)
 
-            if default_token_generator.check_token(user, token):
-                user.is_active = True
-                user.save()
-                return Response({"message": _("Email confirmed successfully")}, status=status.HTTP_200_OK)
+        user = get_user_from_uid(uidb64)
+        if not user:
+            return Response({"error": _("Invalid user")}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not default_token_generator.check_token(user, token):
             return Response({"error": _("Invalid or expired token")}, status=status.HTTP_400_BAD_REQUEST)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return Response({"error": _("Error confirming email")}, status=status.HTTP_400_BAD_REQUEST)
+        user.email_verified = True
+        user.save()
+        return Response({"message": _("Email confirmed successfully!")}, status=status.HTTP_200_OK)
 
 
 class ResetPasswordView(APIView):
     @staticmethod
     def post(request, uidb64, token):
-        try:
-            uid = urlsafe_base64_decode(uidb64).decode()
-            user = get_object_or_404(User, pk=uid)
-        except (ValueError, TypeError):
+        user = get_user_from_uid(uidb64)
+        if not user:
             return Response({"error": _("Invalid user")}, status=status.HTTP_400_BAD_REQUEST)
 
         if not default_token_generator.check_token(user, token):
@@ -70,9 +73,19 @@ class ResetPasswordView(APIView):
 
         user.password = make_password(new_password)
         user.save()
-
         return Response({"message": _("Password reset successfully")}, status=status.HTTP_200_OK)
 
 
-def check_email(request):
-    return render(request, "check_email.html")
+class RequestPasswordResetView(APIView):
+    @staticmethod
+    def post(request):
+        email = request.data.get("email")
+        if not email:
+            return Response({"error": _("Email is required")}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response({"error": _("User not found")}, status=status.HTTP_404_NOT_FOUND)
+
+        EmailService.send_password_reset_email(user)
+        return Response({"message": _("A link to reset your password has been sent to your email")}, status=status.HTTP_200_OK)

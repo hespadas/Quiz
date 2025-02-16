@@ -19,6 +19,7 @@ import JoinLobby from "./pages/LobbyJoin/JoinLobby";
 import Lobby from "./pages/Lobby/Lobby";
 import CreateLobby from "./pages/LobbyCreate/CreateLobby";
 import GameRoom from "./pages/Game/Game";
+import EmailConfirmation from "./pages/EmailConfirmation/EmailConfirmation";
 
 function App() {
   return (
@@ -39,6 +40,10 @@ function App() {
           <Route path="/lobby/join" element={<JoinLobby />} />
           <Route path="/lobby/:code" element={<Lobby />} />
           <Route path="/lobby/create" element={<CreateLobby />} />
+          <Route
+            path="/confirm-email/:uidb64/:token/"
+            element={<EmailConfirmation />}
+          />
         </Routes>
       </AuthProvider>
     </Router>
