@@ -120,3 +120,6 @@ DATABASES = {
         'HOST': os.getenv('PGHOST'),
         'PORT': os.getenv('PGPORT', '5432'),
     }}
+
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

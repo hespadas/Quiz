@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -147,3 +148,5 @@ EMAIL_USE_TLS = False
 EMAIL_USE_SSL = False
 
 AUTH_USER_MODEL = 'accounts.User'
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
