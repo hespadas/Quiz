@@ -17,7 +17,9 @@ export const AuthProvider = ({ children }) => {
       if (
         location.pathname === "/login" ||
         location.pathname === "/register" ||
-        location.pathname === "/confirm-email"
+        location.pathname === "/confirm-email" ||
+        location.pathname === "/forgot-password" ||
+        location.pathname.startsWith("/reset-password")
       ) {
         setIsAuth(false);
         setUser(null);

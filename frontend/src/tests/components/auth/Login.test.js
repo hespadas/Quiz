@@ -3,7 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../../../components/auth/AuthContext";
 
 import authService from "../../../services/authService";
-import { Login } from "../../../components/auth/Login";
+import { Login } from "../../../pages/Login/Login";
 
 jest.mock("../../../services/authService");
 

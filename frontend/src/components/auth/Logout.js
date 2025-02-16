@@ -1,8 +1,8 @@
 // src/component/Logout.js
 import { useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "./AuthContext";
 import authService from "../../services/authService";
+import { AuthContext } from "./AuthContext";
 
 export const Logout = () => {
   const navigate = useNavigate();

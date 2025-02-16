@@ -1,14 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./components/auth/AuthContext";
-
-import { Login } from "./components/auth/Login";
-import { Logout } from "./components/auth/Logout";
-
 import "./i18n/i18n";
-
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import { Navigation } from "./components/layout/Navigation";
+import { Logout } from "./components/auth/Logout";
+import { Login } from "./pages/Login/Login";
 import Home from "./pages/Home/Home";
 import Register from "./pages/Register/Register";
 import Creation from "./pages/QuizCreate/Creation";
@@ -20,6 +18,8 @@ import Lobby from "./pages/Lobby/Lobby";
 import CreateLobby from "./pages/LobbyCreate/CreateLobby";
 import GameRoom from "./pages/Game/Game";
 import EmailConfirmation from "./pages/EmailConfirmation/EmailConfirmation";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
 
 function App() {
   return (
@@ -43,6 +43,11 @@ function App() {
           <Route
             path="/confirm-email/:uidb64/:token/"
             element={<EmailConfirmation />}
+          />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route
+            path="/reset-password/:uidb64/:token"
+            element={<ResetPassword />}
           />
         </Routes>
       </AuthProvider>

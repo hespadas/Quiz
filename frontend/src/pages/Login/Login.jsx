@@ -1,8 +1,9 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "./AuthContext";
 import authService from "../../services/authService";
 import { useTranslation } from "react-i18next";
+import { AuthContext } from "../../components/auth/AuthContext";
+import { Link } from "react-router-dom";
 
 export const Login = () => {
   const { t } = useTranslation();
@@ -82,6 +83,11 @@ export const Login = () => {
           >
             {t("submit")}
           </button>
+        </div>
+        <div className="mt-3 text-center">
+          <Link to="/forgot-password" className="text-blue-600 hover:underline">
+            {t("recover password")}
+          </Link>
         </div>
       </form>
     </div>
