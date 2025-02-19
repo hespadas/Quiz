@@ -1,8 +1,8 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import authService from "../../services/authService";
+import authService from "../../../services/authService";
 import { useTranslation } from "react-i18next";
-import { AuthContext } from "../../components/auth/AuthContext";
+import { AuthContext } from "../../../components/auth/AuthContext";
 import { Link } from "react-router-dom";
 
 export const Login = () => {

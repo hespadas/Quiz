@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import apiPublic from "../../services/apiPublic";
+import apiPublic from "../../../services/apiPublic";
 
 export const confirmEmail = async (uidb64, token) => {
   try {

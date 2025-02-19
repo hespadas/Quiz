@@ -3,9 +3,9 @@ import React, { useContext, useMemo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { AuthContext } from "../../components/auth/AuthContext";
-import { useLobbyData } from "../../hooks/useLobbyData";
-import useWebSocket from "../../hooks/useWebSocket";
+import { AuthContext } from "../../../components/auth/AuthContext";
+import { useLobbyData } from "../../../hooks/useLobbyData";
+import useWebSocket from "../../../hooks/useWebSocket";
 import LobbyPresentation from "./components/LobbyPresentation";
 
 const Lobby = () => {

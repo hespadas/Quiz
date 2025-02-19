@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
-import authService from "../../services/authService";
+import authService from "../../../services/authService";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");

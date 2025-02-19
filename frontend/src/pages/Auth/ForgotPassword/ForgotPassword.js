@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import authService from "../../services/authService";
+import authService from "../../../services/authService";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");

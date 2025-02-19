@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 
-import axios from "../../services/axiosConfig";
+import axios from "../../../services/axiosConfig";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import QuizForm from "../../components/quiz/QuizForm";
+import QuizForm from "../../../components/quiz/QuizForm";
 
 const EditQuiz = () => {
   const { t } = useTranslation();
