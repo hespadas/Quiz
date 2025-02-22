@@ -123,3 +123,5 @@ DATABASES = {
 
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+AUTH_USER_MODEL = 'accounts.User'
