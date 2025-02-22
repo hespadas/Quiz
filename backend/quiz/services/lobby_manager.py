@@ -1,5 +1,6 @@
+from channels.db import database_sync_to_async
 
-from quiz.services.game_service import GameService
+from quiz.models import Game
 
 
 class LobbyManager:
@@ -51,7 +52,7 @@ class LobbyManager:
 
     @classmethod
     async def initialize_real_host(cls, code):
-        real_host_username = await GameService.get_game_host_username(code)
+        real_host_username = await cls.get_game_host_username(code)
         if real_host_username:
             cls.set_real_host(code, real_host_username)
         return real_host_username
@@ -59,3 +60,9 @@ class LobbyManager:
     @classmethod
     def user_is_host(cls, code, user):
         return user.username == cls.get_real_host(code)
+
+    @staticmethod
+    @database_sync_to_async
+    def get_game_host_username(code):
+        game = Game.objects.get(code=code)
+        return game.host.username

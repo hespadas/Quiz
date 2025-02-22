@@ -9,7 +9,6 @@ from quiz.serializers.lobby_serializer import LobbyCreateSerializer
 
 @permission_classes([IsAuthenticated])
 class LobbyCreateView(generics.CreateAPIView):
-    """Creates a game lobby."""
     serializer_class = LobbyCreateSerializer
 
     def create(self, request, *args, **kwargs):

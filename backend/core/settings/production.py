@@ -4,7 +4,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = "django-insecure-bpllbcy(ck461@^j7=@2o-*y@xn_zfq0n^x7eh)ax)ucu3nq4f"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 DEBUG = False
 
@@ -120,3 +120,6 @@ DATABASES = {
         'HOST': os.getenv('PGHOST'),
         'PORT': os.getenv('PGPORT', '5432'),
     }}
+
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

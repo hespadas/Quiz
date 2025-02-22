@@ -1,4 +1,5 @@
 import axios from "./axiosConfig";
+import apiPublic from "./apiPublic";
 
 const authService = {
   async login(username, password) {
@@ -42,6 +43,23 @@ const authService = {
   async logout() {
     await axios.post("/auth/logout/", {}, { withCredentials: true });
     return true;
+  },
+
+  async requestPasswordReset(email) {
+    const response = await apiPublic.post("/accounts/request-password-reset/", {
+      email,
+    });
+    return response.data;
+  },
+
+  async resetPassword(uidb64, token, newPassword) {
+    const response = await apiPublic.post(
+      `/accounts/reset-password/${uidb64}/${token}/`,
+      {
+        password: newPassword,
+      }
+    );
+    return response.data;
   },
 };
 

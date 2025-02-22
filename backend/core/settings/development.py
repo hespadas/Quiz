@@ -1,9 +1,10 @@
+import os
 from datetime import timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = "django-insecure-bpllbcy(ck461@^j7=@2o-*y@xn_zfq0n^x7eh)ax)ucu3nq4f"
+SECRET_KEY = ")exs1(!6qr()mbtx@qo$^g&wdhl1^4mm2v-jqsi)fss3c-n-=4"
 
 DEBUG = True
 ALLOWED_HOSTS = []
@@ -139,3 +140,13 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = False
+
+AUTH_USER_MODEL = 'accounts.User'
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

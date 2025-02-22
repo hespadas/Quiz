@@ -1,7 +1,9 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+
+User = get_user_model()
 
 
 class RegisterUserViewTests(APITestCase):
@@ -23,8 +25,11 @@ class RegisterUserViewTests(APITestCase):
     def test_register_user_successfully(self):
         response = self.client.post(self.url, self.valid_data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["message"] == "User created successfully"
-        assert User.objects.filter(username="testuser").exists()
+        assert response.data["message"] == "User created successfully, confirm your email"
+        user = User.objects.get(username="testuser")
+        assert user is not None
+        assert user.email == "test@example.com"
+        assert user.email_verified is False
 
     def test_register_user_with_invalid_data(self):
         response = self.client.post(self.url, self.invalid_data, format="json")

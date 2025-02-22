@@ -14,7 +14,13 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      if (location.pathname === "/login" || location.pathname === "/register") {
+      if (
+        location.pathname === "/login" ||
+        location.pathname === "/register" ||
+        location.pathname === "/confirm-email" ||
+        location.pathname === "/forgot-password" ||
+        location.pathname.startsWith("/reset-password")
+      ) {
         setIsAuth(false);
         setUser(null);
         return;

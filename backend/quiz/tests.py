@@ -1,6 +1,7 @@
-from django.contrib.auth.models import User
+
 from django.test import TestCase
 
+from accounts.models import User
 from quiz.models.category import Category
 from quiz.models.option import Option
 from quiz.models.question import Question

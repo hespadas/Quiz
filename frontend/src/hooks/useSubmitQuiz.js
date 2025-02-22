@@ -9,13 +9,15 @@ const useSubmitQuiz = (
   selectedOptionsRef,
   user,
   sendMessage,
-  setScore
+  setScore,
+  setIsSubmitting
 ) => {
   const { t } = useTranslation();
 
   return useCallback(async () => {
+    if (!gameRoom) return;
+    setIsSubmitting(true);
     try {
-      if (!gameRoom) return;
       const response = await axios.post(
         `/quizzes/submit/${gameRoom.quiz.id}/`,
         { answers: selectedOptionsRef.current },
@@ -25,7 +27,6 @@ const useSubmitQuiz = (
           },
         }
       );
-
       setScore(response.data);
       sendMessage({
         type: "user_score",
@@ -35,14 +36,24 @@ const useSubmitQuiz = (
       });
     } catch (error) {
       if (error.response) {
-        toast.error(error.response.data.message || t("Erro ao enviar quiz."));
+        toast.error(error.response.data.message || t("Error submitting quiz."));
       } else if (error.request) {
-        toast.error(t("Erro de rede. Por favor, tente novamente."));
+        toast.error(t("Network error. Please try again."));
       } else {
-        toast.error(t("Ocorreu um erro inesperado."));
+        toast.error(t("An unexpected error has occurred."));
       }
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [gameRoom, selectedOptionsRef, user, sendMessage, setScore, t]);
+  }, [
+    gameRoom,
+    selectedOptionsRef,
+    user,
+    sendMessage,
+    setScore,
+    setIsSubmitting,
+    t,
+  ]);
 };
 
 export default useSubmitQuiz;

@@ -12,7 +12,7 @@ export function useLobbyData(code, navigate) {
       .get(`/game_rooms/${code}/`)
       .then((response) => setGameInfo(response.data))
       .catch((err) => {
-        toast.error("Falha ao carregar o lobby.");
+        toast.error("Failed to load lobby.");
         setGameInfo(null);
         navigate("/");
       });

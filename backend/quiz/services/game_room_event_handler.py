@@ -18,7 +18,7 @@ class GameRoomEventHandler:
         elif event_type == "user_score":
             await self.handle_user_score(data)
         elif event_type == "quiz_finished":
-            await self.handle_quiz_finished(data)
+            await self.handle_quiz_finished()
 
     async def handle_advance_question(self, data):
         score_manager = ScoreManager(self.room_code)
@@ -40,7 +40,7 @@ class GameRoomEventHandler:
         if score_manager.submissions_complete():
             await self.broadcast_scores()
 
-    async def handle_quiz_finished(self, data):
+    async def handle_quiz_finished(self):
         score_manager = ScoreManager(self.room_code)
         score_manager.reset_on_quiz_finished()
 
