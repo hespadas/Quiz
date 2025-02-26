@@ -94,7 +94,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 
 CORS_ORIGIN_ALLOW_ALL = False
 
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if os.getenv("CORS_ALLOWED_ORIGINS") else []
+CORS_ALLOWED_ORIGINS = [
+    "https://frontend-production-5db1.up.railway.app",
+    "https://rabbitquiz.com",
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
