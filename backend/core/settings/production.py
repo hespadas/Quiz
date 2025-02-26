@@ -93,9 +93,9 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 CORS_ORIGIN_ALLOW_ALL = False
-CORS_ALLOWED_ORIGINS = [
-    "https://frontend-production-5db1.up.railway.app",
-]
+
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if os.getenv("CORS_ALLOWED_ORIGINS") else []
+
 CORS_ALLOW_CREDENTIALS = True
 
 STATIC_URL = "/static/"
