@@ -12,6 +12,7 @@ ALLOWED_HOSTS = [
     "backend-production-1fe7.up.railway.app",
     "frontend-production-5db1.up.railway.app",
     "rabbitquiz.com",
+    "www.rabbitquiz.com",
 ]
 
 INSTALLED_APPS = [
@@ -98,6 +99,7 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOWED_ORIGINS = [
     "https://frontend-production-5db1.up.railway.app",
     "https://rabbitquiz.com",
+    "https://www.rabbitquiz.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
