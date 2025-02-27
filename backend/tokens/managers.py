@@ -6,7 +6,7 @@ class CookieManager:
             token,
             httponly=True,
             secure=True,
-            samesite="Lax",
+            samesite="None",
             max_age=300,
         )
 
@@ -16,8 +16,8 @@ class CookieManager:
             "refresh_token",
             token,
             httponly=True,
-            secure=False,
-            samesite="Lax",
+            secure=True,
+            samesite="None",
             max_age=604800,
         )
 
