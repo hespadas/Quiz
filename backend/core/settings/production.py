@@ -132,6 +132,7 @@ EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
 EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
+EMAIL_HOST_USER = "contact@rabbitquiz.com"
 EMAIL_HOST_PASSWORD = '9fZHsyMnG2mDyV'
 DEFAULT_FROM_EMAIL = "contact@rabbitquiz.com"
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
