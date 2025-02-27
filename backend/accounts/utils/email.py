@@ -20,6 +20,8 @@ class EmailService:
             logger.info(f"Enviando e-mail de confirmação para {user.email}")
             logger.info(f"URL de confirmação: {confirmation_url}")
 
+            logger.info(settings.DEFAULT_FROM_EMAIL)
+
             send_mail(
                 "Confirm Your Email",
                 f"Click the link to confirm your email: {confirmation_url}",
