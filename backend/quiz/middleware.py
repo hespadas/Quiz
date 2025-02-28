@@ -1,4 +1,5 @@
 import logging
+from urllib.parse import parse_qs
 
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
@@ -22,12 +23,15 @@ def get_user_from_token(token_key):
 
 class TokenAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
-        headers = dict(scope["headers"])
-        cookies = {}
-        if b"cookie" in headers:
-            cookies = parse_cookie(headers[b"cookie"].decode())
-            logger.debug(f"TokenAuthMiddleware: Cookies parsed: {cookies}")
-        token = cookies.get("access_token")
+        query_string = scope.get("query_string", b"").decode()
+        query_params = parse_qs(query_string)
+        token = query_params.get("token", [None])[0]
+        if not token:
+            headers = dict(scope["headers"])
+            cookies = {}
+            if b"cookie" in headers:
+                cookies = parse_cookie(headers[b"cookie"].decode())
+            token = cookies.get("access_token")
 
         if token:
             user = await get_user_from_token(token)
@@ -35,6 +39,6 @@ class TokenAuthMiddleware(BaseMiddleware):
             logger.info(f"TokenAuthMiddleware: Authenticated user {user.username}")
         else:
             scope["user"] = AnonymousUser()
-            logger.info("TokenAuthMiddleware: No access_token found. User set to AnonymousUser.")
+            logger.info("TokenAuthMiddleware: No token found. User set to AnonymousUser.")
 
         return await super().__call__(scope, receive, send)
