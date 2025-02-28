@@ -6,6 +6,7 @@ const Question = ({
   currentQuestionIndex,
   selectedOptions,
   setSelectedOptions,
+  isHost,
 }) => {
   const { t } = useTranslation();
   const questions = gameRoom?.quiz?.questions || [];
@@ -30,7 +31,10 @@ const Question = ({
           currentQuestion.options.map((option) => (
             <button
               key={option.id}
-              onClick={() => handleOptionSelect(option.id)}
+              onClick={
+                !isHost ? () => handleOptionSelect(option.id) : undefined
+              }
+              disabled={isHost}
               className={`p-2 rounded ${
                 selectedOptions[currentQuestion.id] === option.id
                   ? "bg-blue-500 text-white"
