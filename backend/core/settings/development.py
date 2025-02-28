@@ -4,7 +4,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = ")exs1(!6qr()mbtx@qo$^g&wdhl1^4mm2v-jqsi)fss3c-n-=4"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 DEBUG = True
 ALLOWED_HOSTS = []

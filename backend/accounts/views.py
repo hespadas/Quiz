@@ -1,3 +1,5 @@
+import threading
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
@@ -21,6 +23,10 @@ def get_user_from_uid(uidb64):
     return get_object_or_404(User, pk=uid)
 
 
+def send_email_async(user):
+    EmailService.send_confirmation_email(user)
+
+
 class RegisterUserView(APIView):
     @staticmethod
     @swagger_auto_schema(
@@ -34,12 +40,11 @@ class RegisterUserView(APIView):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            EmailService.send_confirmation_email(user)
-            return Response(
-                {"message": _("User created successfully, confirm your email")},
-                status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            response = Response({"message": "User created successfully"}, status=201)
+            threading.Thread(target=send_email_async, args=(user,)).start()
+            return response
+
+        return Response(serializer.errors, status=422)
 
 
 class ConfirmEmailView(APIView):

@@ -11,6 +11,8 @@ DEBUG = False
 ALLOWED_HOSTS = [
     "backend-production-1fe7.up.railway.app",
     "frontend-production-5db1.up.railway.app",
+    "rabbitquiz.com",
+    "www.rabbitquiz.com",
 ]
 
 INSTALLED_APPS = [
@@ -83,7 +85,8 @@ SECURE_SSL_REDIRECT = True
 # Cookies Seguros
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
 
 SECURE_HSTS_SECONDS = 3600
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -93,9 +96,13 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 CORS_ORIGIN_ALLOW_ALL = False
+
 CORS_ALLOWED_ORIGINS = [
     "https://frontend-production-5db1.up.railway.app",
+    "https://rabbitquiz.com",
+    "https://www.rabbitquiz.com",
 ]
+
 CORS_ALLOW_CREDENTIALS = True
 
 STATIC_URL = "/static/"
@@ -121,5 +128,13 @@ DATABASES = {
         'PORT': os.getenv('PGPORT', '5432'),
     }}
 
-
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = "contact@rabbitquiz.com"
+EMAIL_HOST_PASSWORD = '9fZHsyMnG2mDyV'
+DEFAULT_FROM_EMAIL = "contact@rabbitquiz.com"
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+AUTH_USER_MODEL = 'accounts.User'
