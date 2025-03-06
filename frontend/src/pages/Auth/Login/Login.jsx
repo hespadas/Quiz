@@ -41,7 +41,7 @@ export const Login = () => {
         onSubmit={submit}
       >
         <h3 className="text-2xl font-semibold text-center mb-6">
-          {t("sign_in")}
+          {t("sign in")}
         </h3>
         <div className="mb-4">
           <label htmlFor="username" className="block mb-2 text-gray-700">

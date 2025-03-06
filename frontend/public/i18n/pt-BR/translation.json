@@ -60,7 +60,6 @@
   "Option": "Opção",
   "Options": "Opções",
   "Page": "Página",
-  "Password reset failed": "",
   "Passwords do not match": "",
   "Please enter a valid game room code.": "Por favor, insira um código de sala de jogo válido.",
   "Previous": "Anterior",
@@ -112,8 +111,7 @@
   "recover password": "recuperar senha",
   "register": "registrar",
   "reset password": "redefinir senha",
-  "sign_in": "entrar",
-  "submit": "enviar",
-  "user created": "usuário criado",
+  "sign in": "Entrar",
+  "User created": "Usuário criado",
   "username": "nome de usuário"
 }
