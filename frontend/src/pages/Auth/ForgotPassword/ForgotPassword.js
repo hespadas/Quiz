@@ -17,7 +17,7 @@ const ForgotPassword = () => {
       toast.success(response.message);
       navigate("/login");
     } catch (error) {
-      toast.error(error.error || t("password_reset_failed"));
+      toast.error(error.error || t("Password reset failed"));
     }
   };
 
@@ -28,7 +28,7 @@ const ForgotPassword = () => {
         className="bg-white p-6 rounded shadow-md w-full max-w-sm"
       >
         <h3 className="text-2xl font-semibold text-center mb-6">
-          {t("forgot_password")}
+          {t("Forgot password")}
         </h3>
         <div className="mb-4">
           <label htmlFor="email" className="block mb-2 text-gray-700">
@@ -39,7 +39,7 @@ const ForgotPassword = () => {
             name="email"
             type="email"
             className="w-full p-2 border border-gray-300 rounded"
-            placeholder={t("enter_email")}
+            placeholder={t("Enter email")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
