@@ -48,6 +48,7 @@ const Game = () => {
         currentQuestionIndex={currentQuestionIndex}
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
+        isHost={gameRoom.host === user?.username}
       />
 
       {gameRoom.host === user?.username && (

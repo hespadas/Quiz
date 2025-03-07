@@ -82,5 +82,5 @@ test("displays generic error message on login failure without detail", async () 
   });
   fireEvent.click(screen.getByText(/submit/i));
 
-  await screen.findByText(/invalid_credentials/i);
+  await screen.findByText(/Invalid credentials/i);
 });

@@ -29,7 +29,7 @@ export const Login = () => {
       if (e.response && e.response.data && e.response.data.detail) {
         setErrorMessage(e.response.data.detail);
       } else {
-        setErrorMessage(t("invalid_credentials"));
+        setErrorMessage(t("Invalid credentials"));
       }
     }
   };
@@ -41,7 +41,7 @@ export const Login = () => {
         onSubmit={submit}
       >
         <h3 className="text-2xl font-semibold text-center mb-6">
-          {t("sign_in")}
+          {t("sign in")}
         </h3>
         <div className="mb-4">
           <label htmlFor="username" className="block mb-2 text-gray-700">
@@ -50,7 +50,7 @@ export const Login = () => {
           <input
             id="username"
             className="w-full p-2 border border-gray-300 rounded mt-1"
-            placeholder={t("enter_username")}
+            placeholder={t("Enter username")}
             name="username"
             type="text"
             value={username}
@@ -67,7 +67,7 @@ export const Login = () => {
             name="password"
             type="password"
             className="w-full p-2 border border-gray-300 rounded mt-1"
-            placeholder={t("enter_password")}
+            placeholder={t("Enter password")}
             value={password}
             required
             onChange={(e) => setPassword(e.target.value)}
