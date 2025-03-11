@@ -4,7 +4,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", ")exs1(!6qr()mbtx@qo$^g&wdhl1^4mm2v-jqsi)fss3c-n-=4")
 
 DEBUG = True
 ALLOWED_HOSTS = []
@@ -150,3 +150,6 @@ EMAIL_USE_SSL = False
 AUTH_USER_MODEL = 'accounts.User'
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
