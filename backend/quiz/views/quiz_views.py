@@ -1,6 +1,7 @@
 from rest_framework import filters, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +20,10 @@ class StandardResultsSetPagination(PageNumberPagination):
 class QuizCreateView(generics.CreateAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
 
 @permission_classes([IsAuthenticated])
@@ -43,6 +48,10 @@ class QuizDetailView(generics.RetrieveAPIView):
 class QuizUpdateView(generics.UpdateAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
 
 
 @permission_classes([IsAuthenticated])
@@ -52,6 +61,7 @@ class QuizStartView(APIView):
         quiz = Quiz.objects.get(id=quiz_id)
         quiz.questions.all()
         QuizSerializer(quiz)
+        return Response({"message": "Starting quiz"})
 
 
 @api_view(['POST'])
