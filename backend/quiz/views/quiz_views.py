@@ -58,6 +58,9 @@ class QuizUpdateView(generics.UpdateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def update(self, request, *args, **kwargs):
+        logger.info(f"📥 Request recebido: {request.data}")
+        logger.info(f"📂 Arquivos recebidos: {request.FILES}")
+
         return super().update(request, *args, **kwargs)
 
 
