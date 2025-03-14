@@ -48,7 +48,7 @@ class QuizSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
 
-        logger.debug(f"🔍 Criando quiz com dados -> {validated_data}")  # 🚀 LOG
+        logger.info(f"🔍 Criando quiz com dados -> {validated_data}")  # 🚀 LOG
         questions_data = validated_data.pop('questions', [])
         request = self.context.get('request')
         quiz = Quiz.objects.create(created_by=request.user, **validated_data)
@@ -62,7 +62,7 @@ class QuizSerializer(serializers.ModelSerializer):
         return quiz
 
     def update(self, instance, validated_data):
-        logger.debug(f"✏️ Atualizando quiz {instance.id} com dados -> {validated_data}")  # 🚀 LOG
+        logger.info(f"✏️ Atualizando quiz {instance.id} com dados -> {validated_data}")  # 🚀 LOG
         if 'imagem' in validated_data:
             instance.imagem = validated_data['imagem']
         instance.title = validated_data.get('title', instance.title)

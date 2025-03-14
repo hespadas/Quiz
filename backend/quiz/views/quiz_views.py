@@ -27,8 +27,8 @@ class QuizCreateView(generics.CreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def create(self, request, *args, **kwargs):
-        logger.debug(f"📥 Request recebido: {request.data}")
-        logger.debug(f"📂 Arquivos recebidos: {request.FILES}")
+        logger.info(f"📥 Request recebido: {request.data}")
+        logger.info(f"📂 Arquivos recebidos: {request.FILES}")
 
         return super().create(request, *args, **kwargs)
 

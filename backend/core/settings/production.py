@@ -151,7 +151,7 @@ AWS_S3_REGION_NAME = "us-east-2"
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.info)
 
 '''
 <?xml version="1.0" encoding="UTF-8"?>
