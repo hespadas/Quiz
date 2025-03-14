@@ -1,4 +1,5 @@
 import json
+import logging
 
 from rest_framework import serializers
 
@@ -8,6 +9,8 @@ from quiz.models.question import Question
 from quiz.models.quiz import Quiz
 from quiz.serializers.category_serializer import CategorySerializer
 from quiz.serializers.question_serializer import QuestionSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class QuizSerializer(serializers.ModelSerializer):
@@ -44,6 +47,8 @@ class QuizSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def create(self, validated_data):
+
+        logger.debug(f"🔍 Criando quiz com dados -> {validated_data}")  # 🚀 LOG
         questions_data = validated_data.pop('questions', [])
         request = self.context.get('request')
         quiz = Quiz.objects.create(created_by=request.user, **validated_data)
@@ -57,6 +62,7 @@ class QuizSerializer(serializers.ModelSerializer):
         return quiz
 
     def update(self, instance, validated_data):
+        logger.debug(f"✏️ Atualizando quiz {instance.id} com dados -> {validated_data}")  # 🚀 LOG
         if 'imagem' in validated_data:
             instance.imagem = validated_data['imagem']
         instance.title = validated_data.get('title', instance.title)

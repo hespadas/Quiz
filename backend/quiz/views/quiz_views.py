@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import filters, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
@@ -8,6 +10,8 @@ from rest_framework.views import APIView
 
 from quiz.models import Quiz
 from quiz.serializers.quiz_serializer import QuizSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -23,6 +27,9 @@ class QuizCreateView(generics.CreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def create(self, request, *args, **kwargs):
+        logger.debug(f"📥 Request recebido: {request.data}")
+        logger.debug(f"📂 Arquivos recebidos: {request.FILES}")
+
         return super().create(request, *args, **kwargs)
 
 
