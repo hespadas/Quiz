@@ -142,27 +142,24 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 AUTH_USER_MODEL = 'accounts.User'
 
 AWS_LOCATION = 'media'
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
-AWS_ACCESS_KEY_ID = 'AKIAUFYFABHQLBWPZMV7'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'rabbitquiz-app-prod'
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = "rabbitquiz-app-prod"
 AWS_S3_REGION_NAME = "us-east-2"
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
-MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 
-logging.basicConfig(level=logging.INFO)
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-'''
-<?xml version="1.0" encoding="UTF-8"?>
-<CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-    <CORSRule>
-        <AllowedOrigin>*</AllowedOrigin>
-        <AllowedMethod>GET</AllowedMethod>
-        <AllowedMethod>POST</AllowedMethod>
-        <AllowedMethod>PUT</AllowedMethod>
-        <AllowedMethod>DELETE</AllowedMethod>
-        <AllowedHeader>*</AllowedHeader>
-    </CORSRule>
-</CORSConfiguration>
-'''
+MEDIA_URL = "media/"
+STATIC_URL = 'staticfiles/'
+
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+}
