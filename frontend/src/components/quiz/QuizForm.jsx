@@ -18,9 +18,21 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
   const [questions, setQuestions] = useState(
     initialData ? initialData.questions : []
   );
+  const [imagem, setImage] = useState(initialData ? initialData.imagem : null);
+  const [imagePreview, setImagePreview] = useState(
+    initialData ? initialData.image : null
+  );
 
   const [availableCategories, setAvailableCategories] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleAddQuestion = useCallback(() => {
     setQuestions((prevQuestions) => [
@@ -129,30 +141,40 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
       }
     }
 
-    const quizData = {
-      title,
-      description,
-      category_id: category !== "" ? Number(category) : null,
-      questions: questions.map((q) => ({
-        ...(q.id && { id: q.id }),
-        text: q.text,
-        order: q.order,
-        question_type: q.question_type,
-        options: q.options.map((o) => ({
-          ...(o.id && { id: o.id }),
-          text: o.text,
-          is_correct: o.is_correct,
-        })),
+    // Criação do FormData para enviar os dados e a imagem
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("category_id", category !== "" ? Number(category) : "");
+    if (imagem) {
+      formData.append("imagem", imagem);
+    }
+
+    const questionsData = questions.map((q) => ({
+      ...(q.id && { id: q.id }),
+      text: q.text,
+      order: q.order,
+      question_type: q.question_type,
+      options: q.options.map((o) => ({
+        ...(o.id && { id: o.id }),
+        text: o.text,
+        is_correct: o.is_correct,
       })),
-    };
+    }));
+
+    formData.append("questions", JSON.stringify(questionsData));
 
     try {
       if (isEdit && initialData) {
-        await axios.put(`/quiz/edit/${initialData.id}`, quizData);
+        await axios.put(`/quiz/edit/${initialData.id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         toast.success(t("Quiz updated successfully!"));
         navigate(`/quizzes/${initialData.id}/`);
       } else {
-        await axios.post("/quizzes/create/", quizData);
+        await axios.post("/quizzes/create/", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         toast.success(t("Quiz created successfully!"));
         navigate("/quizzes");
       }
@@ -208,6 +230,23 @@ const QuizForm = ({ initialData = null, isEdit = false }) => {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="mb-6">
+          <label className="block mb-2 font-medium">{t("Image")}</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full"
+          />
+          {imagePreview && (
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="mt-2 h-48 object-cover"
+            />
+          )}
         </div>
 
         <div className="mb-6">
