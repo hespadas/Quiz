@@ -1,5 +1,3 @@
-import logging
-
 from rest_framework import filters, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
@@ -10,8 +8,6 @@ from rest_framework.views import APIView
 
 from quiz.models import Quiz
 from quiz.serializers.quiz_serializer import QuizSerializer
-
-logger = logging.getLogger(__name__)
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -27,9 +23,6 @@ class QuizCreateView(generics.CreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def create(self, request, *args, **kwargs):
-        logger.info(f"📥 Request recebido: {request.data}")
-        logger.info(f"📂 Arquivos recebidos: {request.FILES}")
-
         return super().create(request, *args, **kwargs)
 
 
@@ -46,6 +39,18 @@ class QuizListView(generics.ListAPIView):
 
 
 @permission_classes([IsAuthenticated])
+class GeneralQuizListView(generics.ListAPIView):
+    serializer_class = QuizSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['title', 'description', 'category__name']
+    ordering_fields = ['created_at', 'title']
+
+    def get_queryset(self):  # noqa: PLR6301
+        return Quiz.objects.filter(is_general=True).order_by('-created_at')
+
+
+@permission_classes([IsAuthenticated])
 class QuizDetailView(generics.RetrieveAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
@@ -58,9 +63,6 @@ class QuizUpdateView(generics.UpdateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def update(self, request, *args, **kwargs):
-        logger.info(f"📥 Request recebido: {request.data}")
-        logger.info(f"📂 Arquivos recebidos: {request.FILES}")
-
         return super().update(request, *args, **kwargs)
 
 
