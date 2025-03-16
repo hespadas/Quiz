@@ -20,7 +20,7 @@ const CreateLobby = () => {
         setAvailableQuizzes(userQuizzesResponse.data.results);
         setGeneralQuizzes(generalQuizzesResponse.data.results);
       } catch (error) {
-        toast.error(t("Erro ao buscar quizzes."));
+        toast.error(t("Error loading quizzes"));
       }
     };
     void fetchQuizzes();
@@ -56,21 +56,20 @@ const CreateLobby = () => {
         quiz_id: quizId,
       });
       const gameRoom = response.data;
-      toast.success(t("Sala de jogo criada! Código: ") + gameRoom.code);
+      toast.success(t("Game lobby created successfully"));
       navigate(`/lobby/${gameRoom.code}/`);
     } catch (error) {
-      toast.error(t("Erro ao criar a sala de jogo."));
+      toast.error(t("Error creating game lobby"));
     }
   };
 
   return (
     <div className="container mx-auto p-6">
-      <h2 className="text-2xl font-semibold mb-4">{t("Criar Sala de Jogo")}</h2>
+      <h2 className="text-2xl font-semibold mb-4">{t("Create Game Lobby")}</h2>
 
-      {/* Seção de Quizzes do Usuário */}
       {availableQuizzes.length > 0 && (
         <>
-          <h3 className="text-xl font-semibold mb-3">{t("Seus Quizzes")}</h3>
+          <h3 className="text-xl font-semibold mb-3">{t("Your Quizzes")}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {availableQuizzes.map((quiz) => (
               <QuizCard
@@ -83,11 +82,10 @@ const CreateLobby = () => {
         </>
       )}
 
-      {/* Seção de Quizzes Gerais */}
       {generalQuizzes.length > 0 && (
         <>
           <h3 className="text-xl font-semibold mt-6 mb-3">
-            {t("Quizzes Gerais")}
+            {t("General Quizzes")}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {generalQuizzes.map((quiz) => (

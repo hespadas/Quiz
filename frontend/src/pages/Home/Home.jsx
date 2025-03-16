@@ -18,44 +18,36 @@ export const Home = () => {
     void fetchData();
   }, [navigate]);
 
+  const options = [
+    { label: t("Join Game"), color: "bg-red-600", path: "/lobby/join/" },
+    { label: t("Create Game"), color: "bg-yellow-600", path: "/lobby/create" },
+    { label: t("Create Quiz"), color: "bg-green-600", path: "/create-quiz" },
+    { label: t("Edit Quiz"), color: "bg-blue-600", path: "/quizzes" },
+  ];
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br to-blue-500 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full">
-        <div className="text-center">
+      <div className="bg-white p-8 rounded-lg shadow-2xl max-w-4xl w-full">
+        <div className="text-center mb-8">
           <img
             src="/img/White_Rabbit_Alice_Wonderland.jpeg"
             alt="Profile"
             className="mx-auto h-24 w-24 object-cover rounded-full shadow-md"
           />
-          <h3 className="mt-4 text-2xl font-bold">
+          <h3 className="mt-4 text-3xl font-bold">
             {t("Greeting, Welcome to the Quiz Platform")}
           </h3>
         </div>
-        <div className="mt-8 space-y-4">
-          <button
-            onClick={() => navigate("/quizzes")}
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200"
-          >
-            {t("Quiz List")}
-          </button>
-          <button
-            onClick={() => navigate("/create-quiz")}
-            className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition duration-200"
-          >
-            {t("Create Quiz")}
-          </button>
-          <button
-            onClick={() => navigate("/lobby/create")}
-            className="w-full py-2 px-4 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition duration-200"
-          >
-            {t("Create Lobby")}
-          </button>
-          <button
-            onClick={() => navigate("/lobby/join/")}
-            className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition duration-200"
-          >
-            {t("Enter Lobby")}
-          </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {options.map((option, idx) => (
+            <button
+              key={idx}
+              onClick={() => navigate(option.path)}
+              className={`${option.color} text-white py-10 rounded-lg shadow-lg hover:shadow-2xl hover:scale-105 transition duration-200 text-xl font-semibold`}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>
