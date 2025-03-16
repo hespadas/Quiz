@@ -27,7 +27,7 @@ export const Home = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br to-blue-500 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-2xl max-w-4xl w-full">
+      <div className="bg-white/80 backdrop-blur-sm p-8 rounded-lg shadow-2xl max-w-4xl w-full">
         <div className="text-center mb-8">
           <img
             src="/img/White_Rabbit_Alice_Wonderland.jpeg"
