@@ -94,7 +94,7 @@ const CreateLobby = () => {
           {t("Create Game Lobby")}
         </h2>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4 bg-gray-100 rounded-lg">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4  rounded-lg">
           <input
             type="text"
             value={searchTerm}

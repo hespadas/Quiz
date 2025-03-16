@@ -7,7 +7,7 @@ const Scoreboard = ({ finalScores, host }) => {
   const filteredScores = finalScores.filter((item) => item.username !== host);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <h2 className="text-3xl font-bold mb-6">{t("Score")}</h2>
       <ul className="w-full max-w-md bg-white rounded-lg shadow p-4 space-y-2">
         {filteredScores.map((item) => (
