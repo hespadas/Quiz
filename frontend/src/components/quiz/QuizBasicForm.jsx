@@ -61,13 +61,13 @@ const QuizBasicForm = ({ initialData = null, isEdit = false }) => {
           headers: { "Content-Type": "multipart/form-data" },
         });
         toast.success(t("Quiz updated successfully!"));
-        navigate(`/quizzes/${initialData.id}/`);
+        navigate(`/quiz/${initialData.id}/edit-questions`);
       } else {
-        await axios.post("/quizzes/create/", formData, {
+        const response = await axios.post("/quizzes/create/", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         toast.success(t("Quiz created successfully!"));
-        navigate("/quizzes");
+        navigate(`/quiz/${response.data.id}/edit-questions`);
       }
     } catch (error) {
       let errorMessage = t("Failed to submit quiz. Please check your inputs.");
@@ -134,7 +134,16 @@ const QuizBasicForm = ({ initialData = null, isEdit = false }) => {
           )}
         </div>
 
-        <div className="text-center">
+        <div className="flex justify-between items-center">
+          {isEdit && initialData && (
+            <Link
+              to={`/quiz/${initialData.id}/edit-questions`}
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              {t("Edit Questions")}
+            </Link>
+          )}
+
           <button
             type="submit"
             disabled={isSubmitting}
@@ -146,18 +155,6 @@ const QuizBasicForm = ({ initialData = null, isEdit = false }) => {
           </button>
         </div>
       </form>
-
-      {/* Se for edição, disponibiliza link para editar as questões separadamente */}
-      {isEdit && initialData && (
-        <div className="mt-4 text-center">
-          <Link
-            to={`/quiz/${initialData.id}/edit-questions`}
-            className="text-blue-500 underline"
-          >
-            {t("Edit Questions")}
-          </Link>
-        </div>
-      )}
     </div>
   );
 };

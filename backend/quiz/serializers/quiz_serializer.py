@@ -17,7 +17,7 @@ class QuizSerializer(serializers.ModelSerializer):
         allow_null=True
     )
     category = CategorySerializer(read_only=True)
-    questions = QuestionSerializer(many=True, required=False, default=list)
+    questions = QuestionSerializer(many=True, required=False)
     created_by = serializers.StringRelatedField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
 

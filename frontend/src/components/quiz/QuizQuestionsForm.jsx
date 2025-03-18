@@ -13,7 +13,6 @@ const QuizQuestionsForm = () => {
   const [questions, setQuestions] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Carrega as questões do quiz
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -31,7 +30,6 @@ const QuizQuestionsForm = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // Valida que cada questão tem pelo menos uma opção correta
     for (let q of questions) {
       if (!q.options.some((option) => option.is_correct)) {
         toast.error(t("Each question must have at least one correct option."));
@@ -41,7 +39,6 @@ const QuizQuestionsForm = () => {
     }
 
     try {
-      // Exemplo: envio das questões para um endpoint específico de atualização
       await axios.put(`/quiz/${id}/update-questions/`, { questions });
       toast.success(t("Questions updated successfully!"));
       navigate(`/quizzes/${id}/`);
@@ -61,7 +58,7 @@ const QuizQuestionsForm = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white/80 backdrop-blur-sm shadow-md rounded">
       <h2 className="text-2xl font-semibold mb-4">
-        {t("Edit Quiz Questions2")}
+        {t("Edit Quiz Questions")}
       </h2>
       <form onSubmit={handleSubmit}>
         <QuizQuestions questions={questions} setQuestions={setQuestions} />
