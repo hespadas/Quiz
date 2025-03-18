@@ -82,7 +82,7 @@ const EditQuestions = () => {
         formattedPayload
       );
       toast.success(t("Questions updated successfully!"));
-      navigate(`/quizzes/${id}/`);
+      navigate(`/quiz/edit/${id}/`);
     } catch (error) {
       let errorMessage = t(
         "Failed to update questions. Please check your inputs."
