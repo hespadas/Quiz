@@ -10,8 +10,8 @@ COPY . .
 
 RUN npm run build
 
-# Usar servidor simples pra servir o frontend
 RUN npm install -g serve
 
-EXPOSE 3000
-CMD ["serve", "-s", "build", "-l", "3000"]
+EXPOSE 8080
+
+CMD ["sh", "-c", "serve -s build -l ${PORT:-8080}"]
