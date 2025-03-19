@@ -14,11 +14,10 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 RUN poetry config installer.max-workers 10
 
-RUN poetry install --no-interaction --no-ansi --no-root --no-dev
+RUN poetry install --no-interaction --no-ansi --no-root --only main
 
 COPY . .
 
 EXPOSE 8080
 
-# Executa o servidor Daphne
 CMD ["sh", "-c", "daphne -b 0.0.0.0 -p 8080 core.asgi:application"]
