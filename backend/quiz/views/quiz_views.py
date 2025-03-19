@@ -1,17 +1,14 @@
-import logging
-
-from rest_framework import filters, generics
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import filters, generics, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from quiz.models import Quiz
+from quiz.models import Question, Quiz
+from quiz.serializers.question_serializer import QuestionSerializer
 from quiz.serializers.quiz_serializer import QuizSerializer
-
-logger = logging.getLogger(__name__)
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -27,9 +24,6 @@ class QuizCreateView(generics.CreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def create(self, request, *args, **kwargs):
-        logger.info(f"📥 Request recebido: {request.data}")
-        logger.info(f"📂 Arquivos recebidos: {request.FILES}")
-
         return super().create(request, *args, **kwargs)
 
 
@@ -46,6 +40,18 @@ class QuizListView(generics.ListAPIView):
 
 
 @permission_classes([IsAuthenticated])
+class GeneralQuizListView(generics.ListAPIView):
+    serializer_class = QuizSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['title', 'description', 'category__name']
+    ordering_fields = ['created_at', 'title']
+
+    def get_queryset(self):  # noqa: PLR6301
+        return Quiz.objects.filter(is_general=True).order_by('-created_at')
+
+
+@permission_classes([IsAuthenticated])
 class QuizDetailView(generics.RetrieveAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
@@ -58,9 +64,6 @@ class QuizUpdateView(generics.UpdateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def update(self, request, *args, **kwargs):
-        logger.info(f"📥 Request recebido: {request.data}")
-        logger.info(f"📂 Arquivos recebidos: {request.FILES}")
-
         return super().update(request, *args, **kwargs)
 
 
@@ -95,3 +98,52 @@ def submit_quiz(request, quiz_id):
         return Response({'error': 'Quiz not found.'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=400)
+
+
+@permission_classes([IsAuthenticated])
+class QuestionViewSet(viewsets.ModelViewSet):
+    serializer_class = QuestionSerializer
+
+    def get_queryset(self):
+        quiz_id = self.kwargs.get('quiz_pk')
+        if not quiz_id:
+            return Question.objects.none()
+        return Question.objects.filter(quiz_id=quiz_id)
+
+    @action(detail=False, methods=['put'], url_path='bulk-update')
+    def bulk_update(self, request, quiz_pk=None):  # noqa: PLR6301
+        questions_data = request.data.get("questions", [])
+
+        if not questions_data:
+            return Response({"error": "No questions provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        for question_data in questions_data:
+            question_id = question_data.get('id')
+            if question_id:
+                try:
+                    question = Question.objects.get(id=question_id, quiz_id=quiz_pk)
+                    serializer = QuestionSerializer(instance=question, data=question_data, partial=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                    else:
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                except Question.DoesNotExist:
+                    return Response({"error": f"Question ID {question_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                question_data["quiz"] = quiz_pk
+                serializer = QuestionSerializer(data=question_data)
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "Questions updated successfully"}, status=status.HTTP_200_OK)
+
+
+@permission_classes([IsAuthenticated])
+class QuizViewSet(viewsets.ModelViewSet):
+    queryset = Quiz.objects.all()
+    serializer_class = QuizSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)

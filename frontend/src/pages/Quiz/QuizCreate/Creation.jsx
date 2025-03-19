@@ -1,8 +1,8 @@
 import React from "react";
-import QuizForm from "../../../components/quiz/QuizForm";
+import QuizBasicForm from "../../../components/quiz/QuizBasicForm";
 
 const QuizCreation = () => {
-  return <QuizForm />;
+  return <QuizBasicForm />;
 };
 
 export default QuizCreation;

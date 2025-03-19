@@ -15,6 +15,12 @@ class Quiz(models.Model):
         User, on_delete=models.CASCADE, related_name='quizzes', null=False, blank=False
     )
     imagem = models.ImageField(upload_to='quiz/', null=True, blank=True)
+    is_general = models.BooleanField(default=False)
+
+    class Meta:
+        permissions = [
+            ("can_create_general_quiz", "Can create general quiz"),
+        ]
 
     def __str__(self):
         return self.title
