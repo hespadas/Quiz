@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 RUN poetry config installer.max-workers 10
 
-RUN poetry install --no-interaction --no-ansi --no-root
+RUN poetry install --no-interaction --no-ansi --no-root --no-dev
 
 COPY . .
 
