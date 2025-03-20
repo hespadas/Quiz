@@ -1,7 +1,4 @@
-// src/components/quiz/EditQuiz.js
-
 import React, { useEffect, useState } from "react";
-
 import axios from "../../../services/axiosConfig";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -51,23 +48,19 @@ const EditQuiz = () => {
     void fetchQuiz();
   }, [id, navigate, t]);
 
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <p>{t("Loading quiz data...")}</p>
+  return (
+    <div className="min-h-screen flex items-center">
+      <div className="w-full">
+        {loading ? (
+          <div className="p-6 text-center">{t("Loading quiz data...")}</div>
+        ) : error ? (
+          <div className="p-6 text-center text-red-500">{error}</div>
+        ) : (
+          <QuizBasicForm initialData={initialData} isEdit={true} />
+        )}
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <p className="text-red-500">{error}</p>
-      </div>
-    );
-  }
-
-  return <QuizBasicForm initialData={initialData} isEdit={true} />;
+    </div>
+  );
 };
 
 export default EditQuiz;
