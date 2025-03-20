@@ -25,7 +25,7 @@ function Register() {
     e.preventDefault();
 
     if (formData.password !== formData.password2) {
-      setMessage(t("passwords do not match"));
+      setMessage(t("Passwords do not match"));
       return;
     }
 
@@ -50,10 +50,10 @@ function Register() {
         const errorMessage = data.password2
           ? data.password2.join(" ")
           : JSON.stringify(data);
-        setMessage(`${t("error")}: ` + errorMessage);
+        setMessage(`${t("Error")}: ` + errorMessage);
       }
     } catch (error) {
-      setMessage(`${t("error")}: ${error.message || error.toString()}`);
+      setMessage(`${t("Error")}: ${error.message || error.toString()}`);
     }
   };
 
@@ -64,19 +64,19 @@ function Register() {
         onSubmit={handleSubmit}
       >
         <h3 className="text-2xl font-semibold text-center mb-6">
-          {t("register")}
+          {t("Register")}
         </h3>
 
         <div className="mb-4">
           <label htmlFor="username" className="block mb-2 text-gray-700">
-            {t("username")}
+            {t("Username")}
           </label>
           <input
             id="username"
             type="text"
             name="username"
             className="w-full p-2 border border-gray-300 rounded mt-1"
-            placeholder={t("username")}
+            placeholder={t("Username")}
             value={formData.username}
             required
             onChange={handleChange}
@@ -85,14 +85,14 @@ function Register() {
 
         <div className="mb-4">
           <label htmlFor="email" className="block mb-2 text-gray-700">
-            {t("email")}
+            {t("Email")}
           </label>
           <input
             id="email"
             type="email"
             name="email"
             className="w-full p-2 border border-gray-300 rounded mt-1"
-            placeholder={t("email")}
+            placeholder={t("Email")}
             value={formData.email}
             required
             onChange={handleChange}
@@ -101,14 +101,14 @@ function Register() {
 
         <div className="mb-4">
           <label htmlFor="password" className="block mb-2 text-gray-700">
-            {t("password")}
+            {t("Password")}
           </label>
           <input
             id="password"
             type="password"
             name="password"
             className="w-full p-2 border border-gray-300 rounded mt-1"
-            placeholder={t("password")}
+            placeholder={t("Password")}
             value={formData.password}
             required
             onChange={handleChange}
@@ -117,14 +117,14 @@ function Register() {
 
         <div className="mb-4">
           <label htmlFor="password2" className="block mb-2 text-gray-700">
-            {t("confirm password")}
+            {t("Confirm password")}
           </label>
           <input
             id="password2"
             type="password"
             name="password2"
             className="w-full p-2 border border-gray-300 rounded mt-1"
-            placeholder={t("confirm password")}
+            placeholder={t("Confirm password")}
             value={formData.password2}
             required
             onChange={handleChange}
@@ -134,7 +134,7 @@ function Register() {
         {message && (
           <div
             className={`mb-4 text-center ${
-              message.includes(t("error")) ? "text-red-500" : "text-green-500"
+              message.includes(t("Error")) ? "text-red-500" : "text-green-500"
             }`}
           >
             {message}
@@ -146,7 +146,7 @@ function Register() {
             type="submit"
             className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
           >
-            {t("submit")}
+            {t("Submit")}
           </button>
         </div>
       </form>

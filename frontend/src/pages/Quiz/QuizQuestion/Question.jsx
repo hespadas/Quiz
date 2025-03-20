@@ -54,7 +54,7 @@ const QuizQuestionsScreen = ({ quizData, onSubmitQuestions }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white/80 backdrop-blur-sm shadow-md rounded">
-      <h2 className="text-2xl font-semibold mb-4">{t("Crie as Questões")}</h2>
+      <h2 className="text-2xl font-semibold mb-4">{t("Create Questions")}</h2>
       <form onSubmit={handleFinalSubmit}>
         <QuizQuestions questions={questions} setQuestions={setQuestions} />
         <div className="text-center">
@@ -65,7 +65,7 @@ const QuizQuestionsScreen = ({ quizData, onSubmitQuestions }) => {
               isSubmitting ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            {t("Finalizar Quiz")}
+            {t("Submit")}
           </button>
         </div>
       </form>

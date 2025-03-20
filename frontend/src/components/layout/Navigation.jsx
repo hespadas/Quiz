@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 export function Navigation() {
   const { t } = useTranslation();
-  const { isAuth, user } = useContext(AuthContext); // <--- get 'user' here
+  const { isAuth, user } = useContext(AuthContext);
   const location = useLocation();
 
   return (
@@ -20,7 +20,7 @@ export function Navigation() {
                 </span>
               )}
               <Link to="/" className="text-white hover:text-gray-400">
-                {t("home")}
+                {t("Home")}
               </Link>
               <Link
                 to="/create-quiz"
@@ -35,13 +35,13 @@ export function Navigation() {
                 to="/lobby/join/"
                 className="text-white hover:text-gray-400"
               >
-                {t("Join Lobby")}
+                {t("Join Game")}
               </Link>
               <Link
                 to="/lobby/create"
                 className="text-white hover:text-gray-400"
               >
-                {t("Create Lobby")}
+                {t("Create Game")}
               </Link>
             </>
           )}
@@ -50,18 +50,18 @@ export function Navigation() {
         <div>
           {isAuth ? (
             <Link to="/logout" className="text-white hover:text-gray-400">
-              {t("logout")}
+              {t("Logout")}
             </Link>
           ) : (
             <>
               {location.pathname !== "/login" && (
                 <Link to="/login" className="text-white hover:text-gray-400">
-                  {t("login")}
+                  {t("Login")}
                 </Link>
               )}
               {location.pathname !== "/register" && (
                 <Link to="/register" className="text-white hover:text-gray-400">
-                  {t("register")}
+                  {t("Register")}
                 </Link>
               )}
             </>

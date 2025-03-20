@@ -36,7 +36,7 @@ const ResetPassword = () => {
         className="bg-white p-6 rounded shadow-md w-full max-w-sm"
       >
         <h3 className="text-2xl font-semibold text-center mb-6">
-          {t("reset password")}
+          {t("Reset password")}
         </h3>
 
         <div className="mb-4">

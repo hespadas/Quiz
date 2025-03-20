@@ -32,7 +32,7 @@ const ForgotPassword = () => {
         </h3>
         <div className="mb-4">
           <label htmlFor="email" className="block mb-2 text-gray-700">
-            {t("email")}
+            {t("Email")}
           </label>
           <input
             id="email"

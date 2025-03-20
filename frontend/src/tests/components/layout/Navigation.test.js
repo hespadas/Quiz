@@ -28,19 +28,19 @@ describe("Navigation component", () => {
   test("renders Home and Logout links when authenticated", () => {
     renderWithRouterAndContext(<Navigation />, { isAuth: true });
 
-    expect(screen.getByText("home")).toBeInTheDocument();
-    expect(screen.getByText("logout")).toBeInTheDocument();
-    expect(screen.queryByText("login")).not.toBeInTheDocument();
-    expect(screen.queryByText("register")).not.toBeInTheDocument();
+    expect(screen.getByText("Home")).toBeInTheDocument();
+    expect(screen.getByText("Logout")).toBeInTheDocument();
+    expect(screen.queryByText("Login")).not.toBeInTheDocument();
+    expect(screen.queryByText("Register")).not.toBeInTheDocument();
   });
 
   test("renders Login and Register links when not authenticated", () => {
     renderWithRouterAndContext(<Navigation />, { isAuth: false });
 
-    expect(screen.getByText("login")).toBeInTheDocument();
-    expect(screen.getByText("register")).toBeInTheDocument();
-    expect(screen.queryByText("home")).not.toBeInTheDocument();
-    expect(screen.queryByText("logout")).not.toBeInTheDocument();
+    expect(screen.getByText("Login")).toBeInTheDocument();
+    expect(screen.getByText("Register")).toBeInTheDocument();
+    expect(screen.queryByText("Home")).not.toBeInTheDocument();
+    expect(screen.queryByText("Logout")).not.toBeInTheDocument();
   });
 
   test("does not show Login link if already on the login page", () => {
@@ -49,8 +49,8 @@ describe("Navigation component", () => {
       route: "/login",
     });
 
-    expect(screen.queryByText("login")).not.toBeInTheDocument();
-    expect(screen.getByText("register")).toBeInTheDocument();
+    expect(screen.queryByText("Login")).not.toBeInTheDocument();
+    expect(screen.getByText("Register")).toBeInTheDocument();
   });
 
   test("does not show Register link if already on the register page", () => {
@@ -59,7 +59,7 @@ describe("Navigation component", () => {
       route: "/register",
     });
 
-    expect(screen.queryByText("register")).not.toBeInTheDocument();
-    expect(screen.getByText("login")).toBeInTheDocument();
+    expect(screen.queryByText("Register")).not.toBeInTheDocument();
+    expect(screen.getByText("Login")).toBeInTheDocument();
   });
 });
