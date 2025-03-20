@@ -28,20 +28,20 @@ describe("Register component", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("username"), {
+    fireEvent.change(screen.getByPlaceholderText("Username"), {
       target: { value: "testuser" },
     });
-    fireEvent.change(screen.getByPlaceholderText("email"), {
+    fireEvent.change(screen.getByPlaceholderText("Email"), {
       target: { value: "test@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("password"), {
+    fireEvent.change(screen.getByPlaceholderText("Password"), {
       target: { value: "!Password123" },
     });
-    fireEvent.change(screen.getByPlaceholderText("confirm password"), {
+    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
       target: { value: "!Password123" },
     });
 
-    fireEvent.click(screen.getByText("submit"));
+    fireEvent.click(screen.getByText("Submit"));
 
     await screen.findByText("User created successfully, confirm your email");
   });
@@ -58,20 +58,20 @@ describe("Register component", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("username"), {
+    fireEvent.change(screen.getByPlaceholderText("Username"), {
       target: { value: "existinguser" },
     });
-    fireEvent.change(screen.getByPlaceholderText("email"), {
+    fireEvent.change(screen.getByPlaceholderText("Email"), {
       target: { value: "existing@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("password"), {
+    fireEvent.change(screen.getByPlaceholderText("Password"), {
       target: { value: "password123" },
     });
-    fireEvent.change(screen.getByPlaceholderText("confirm password"), {
+    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
       target: { value: "password123" },
     });
 
-    fireEvent.click(screen.getByText("submit"));
+    fireEvent.click(screen.getByText("Submit"));
 
     await screen.findByText(/error/);
   });
@@ -83,22 +83,22 @@ describe("Register component", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("username"), {
+    fireEvent.change(screen.getByPlaceholderText("Username"), {
       target: { value: "newuser" },
     });
-    fireEvent.change(screen.getByPlaceholderText("email"), {
+    fireEvent.change(screen.getByPlaceholderText("Email"), {
       target: { value: "newuser@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("password"), {
+    fireEvent.change(screen.getByPlaceholderText("Password"), {
       target: { value: "password123" },
     });
-    fireEvent.change(screen.getByPlaceholderText("confirm password"), {
+    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
       target: { value: "differentpassword" },
     });
 
-    fireEvent.click(screen.getByText("submit"));
+    fireEvent.click(screen.getByText("Submit"));
 
-    await screen.findByText("passwords do not match");
+    await screen.findByText("Passwords do not match");
   });
 
   test("displays error message when error lacks message property", async () => {
@@ -113,24 +113,24 @@ describe("Register component", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("username"), {
+    fireEvent.change(screen.getByPlaceholderText("Username"), {
       target: { value: "newuser" },
     });
-    fireEvent.change(screen.getByPlaceholderText("email"), {
+    fireEvent.change(screen.getByPlaceholderText("Email"), {
       target: { value: "newuser@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("password"), {
+    fireEvent.change(screen.getByPlaceholderText("Password"), {
       target: { value: "password123" },
     });
-    fireEvent.change(screen.getByPlaceholderText("confirm password"), {
+    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
       target: { value: "password123" },
     });
 
-    fireEvent.click(screen.getByText("submit"));
+    fireEvent.click(screen.getByText("Submit"));
 
     const errorElement = await screen.findByText(
       (content, element) =>
-        content.includes("error") ||
+        content.includes("Error") ||
         element?.classList.contains("error-message")
     );
 
@@ -146,21 +146,21 @@ describe("Register component", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("username"), {
+    fireEvent.change(screen.getByPlaceholderText("Username"), {
       target: { value: "newuser" },
     });
-    fireEvent.change(screen.getByPlaceholderText("email"), {
+    fireEvent.change(screen.getByPlaceholderText("Email"), {
       target: { value: "newuser@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("password"), {
+    fireEvent.change(screen.getByPlaceholderText("Password"), {
       target: { value: "password123" },
     });
-    fireEvent.change(screen.getByPlaceholderText("confirm password"), {
+    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
       target: { value: "password123" },
     });
 
-    fireEvent.click(screen.getByText("submit"));
+    fireEvent.click(screen.getByText("Submit"));
 
-    await screen.findByText(/error: Network error/);
+    await screen.findByText(/Error: Network error/);
   });
 });

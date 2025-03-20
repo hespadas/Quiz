@@ -14,16 +14,14 @@ const EditQuestions = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Carrega as questões do quiz via API
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         const response = await axios.get(`/api/quizzes/${id}/questions/`);
-        // Formata as questões garantindo que os campos id, order, etc. estejam definidos
         const formattedQuestions = response.data.map((q) => ({
           id: q.id || null,
           text: q.text,
-          order: q.order, // Se já estiver definido no backend, usa; senão, será definido no payload
+          order: q.order,
           question_type: q.question_type,
           options: q.options.map((o) => ({
             id: o.id || null,
@@ -46,7 +44,6 @@ const EditQuestions = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // Validação: Cada questão deve ter pelo menos uma opção correta
     for (let q of questions) {
       if (!q.options.some((option) => option.is_correct)) {
         toast.error(t("Each question must have at least one correct option."));
@@ -55,7 +52,6 @@ const EditQuestions = () => {
       }
     }
 
-    // Formata o payload: se order não estiver definido, usa o índice+1 como valor padrão
     const formattedPayload = {
       questions: questions.map((q, index) => ({
         id: q.id ?? null,
@@ -70,13 +66,7 @@ const EditQuestions = () => {
       })),
     };
 
-    console.log(
-      "🔍 Payload enviado:",
-      JSON.stringify(formattedPayload, null, 2)
-    );
-
     try {
-      // Chama o endpoint customizado bulk-update
       await axios.put(
         `/api/quizzes/${id}/questions/bulk-update/`,
         formattedPayload

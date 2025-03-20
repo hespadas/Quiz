@@ -41,11 +41,11 @@ export const Login = () => {
         onSubmit={submit}
       >
         <h3 className="text-2xl font-semibold text-center mb-6">
-          {t("sign in")}
+          {t("Sign in")}
         </h3>
         <div className="mb-4">
           <label htmlFor="username" className="block mb-2 text-gray-700">
-            {t("username")}
+            {t("Username")}
           </label>
           <input
             id="username"
@@ -60,7 +60,7 @@ export const Login = () => {
         </div>
         <div className="mb-4">
           <label htmlFor="password" className="block mb-2 text-gray-700">
-            {t("password")}
+            {t("Password")}
           </label>
           <input
             id="password"
@@ -81,12 +81,12 @@ export const Login = () => {
             type="submit"
             className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
           >
-            {t("submit")}
+            {t("Submit")}
           </button>
         </div>
         <div className="mt-3 text-center">
           <Link to="/forgot-password" className="text-blue-600 hover:underline">
-            {t("recover password")}
+            {t("Recover password")}
           </Link>
         </div>
       </form>
