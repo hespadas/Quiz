@@ -4,30 +4,21 @@ from rest_framework_nested.routers import NestedDefaultRouter
 
 from . import views
 from .views.game_views import GameCreateView, GameRetrieveView
+from .views.questions_views import QuestionListView, bulk_update_questions
 from .views.quiz_views import (
     GeneralQuizListView,
-    QuestionViewSet,
     QuizCreateView,
     QuizDetailView,
     QuizListView,
     QuizUpdateView,
-    QuizViewSet,
 )
 from .views.user_views import UserInfoView
 
 app_name = "quiz"
 
-# Router para os endpoints da API
-router = DefaultRouter()
-router.register(r'quizzes', QuizViewSet, basename='quiz')
-
-quiz_router = NestedDefaultRouter(router, r'quizzes', lookup='quiz')
-quiz_router.register(r'questions', QuestionViewSet, basename='quiz-questions')
 
 urlpatterns = [
     path("home/", views.home_views.HomeView.as_view(), name="home"),
-    path('api/', include(router.urls)),
-    path('api/', include(quiz_router.urls)),
     path('quizzes/', QuizListView.as_view(), name='quiz-list'),
     path('quizzes/general/', GeneralQuizListView.as_view(), name='quiz-list-general'),
     path('quizzes/create/', QuizCreateView.as_view(), name='quiz-create'),
@@ -38,5 +29,7 @@ urlpatterns = [
     path('game_rooms/create/', GameCreateView.as_view(), name='game_room_create'),
     path('game_rooms/<str:code>/', GameRetrieveView.as_view(), name='game_room_detail'),
     path('user-info/', UserInfoView.as_view(), name='user_info'),
+    path("api/quizzes/<int:quiz_id>/questions/", QuestionListView.as_view(), name="question-list"),
+    path("api/quizzes/<int:quiz_id>/questions/bulk-update/", bulk_update_questions, name="question-bulk-update"),
     path('quizzes/submit/<int:quiz_id>/', views.quiz_views.submit_quiz, name='quiz-submit'),
 ]
