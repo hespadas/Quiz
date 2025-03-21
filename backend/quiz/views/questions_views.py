@@ -18,42 +18,18 @@ class QuestionListView(generics.ListAPIView):
         return Question.objects.filter(quiz_id=quiz_id)
 
 
-@permission_classes([IsAuthenticated])
-class QuestionCreateView(generics.CreateAPIView):
-    serializer_class = QuestionSerializer
-
-    def perform_create(self, serializer):
-        quiz_id = self.kwargs.get("quiz_id")
-        quiz = Quiz.objects.get(id=quiz_id)
-        serializer.save(quiz=quiz)
-
-
-@permission_classes([IsAuthenticated])
-class QuestionDetailView(generics.RetrieveAPIView):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
-
-
-@permission_classes([IsAuthenticated])
-class QuestionUpdateView(generics.UpdateAPIView):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
-
-
-@permission_classes([IsAuthenticated])
-class QuestionDeleteView(generics.DestroyAPIView):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
-
-
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated])
 def bulk_update_questions(request, quiz_id):
     questions_data = request.data.get("questions", [])
-
     if not questions_data:
         return Response({"error": "No questions provided."}, status=status.HTTP_400_BAD_REQUEST)
-
+    sent_ids = {q.get("id") for q in questions_data if q.get("id")}
+    current_questions = Question.objects.filter(quiz_id=quiz_id)
+    set(current_questions.values_list("id", flat=True))
+    for question in current_questions:
+        if question.id not in sent_ids:
+            question.delete()
     for question_data in questions_data:
         question_id = question_data.get("id")
         if question_id:
