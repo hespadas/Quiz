@@ -29,7 +29,7 @@ export function Navigation() {
                 {t("Create Quiz")}
               </Link>
               <Link to="/quizzes" className="text-white hover:text-gray-400">
-                {t("Quiz List")}
+                {t("Your Quizzes")}
               </Link>
               <Link
                 to="/lobby/join/"

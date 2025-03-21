@@ -87,28 +87,34 @@ const EditQuestions = () => {
   };
 
   if (loading) {
-    return <div className="text-center">{t("Loading questions...")}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">{t("Loading questions...")}</div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white/80 backdrop-blur-sm shadow-md rounded">
-      <h2 className="text-2xl font-semibold mb-4">
-        {t("Edit Quiz Questions")}
-      </h2>
-      <form onSubmit={handleSubmit}>
-        <QuizQuestions questions={questions} setQuestions={setQuestions} />
-        <div className="text-center mt-4">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ${
-              isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            {t("Update Questions")}
-          </button>
-        </div>
-      </form>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-4xl p-6 bg-white/80 backdrop-blur-sm shadow-md rounded">
+        <h2 className="text-2xl font-semibold mb-4 text-center">
+          {t("Edit Quiz Questions")}
+        </h2>
+        <form onSubmit={handleSubmit}>
+          <QuizQuestions questions={questions} setQuestions={setQuestions} />
+          <div className="text-center mt-4">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ${
+                isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              {t("Update Questions")}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

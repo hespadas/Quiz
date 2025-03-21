@@ -1,3 +1,5 @@
+// src/components/quiz/QuizBasicForm.js
+
 import React, { useState, useEffect } from "react";
 import axios from "../../services/axiosConfig";
 import { useNavigate, Link } from "react-router-dom";
@@ -81,7 +83,7 @@ const QuizBasicForm = ({ initialData = null, isEdit = false }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white/80 backdrop-blur-sm shadow-md rounded">
+    <div className="max-w-4xl mx-auto p-6 bg-white/80 backdrop-blur-sm shadow-md rounded items-center">
       <h2 className="text-2xl font-semibold mb-4">
         {isEdit ? t("Edit Quiz") : t("Create New Quiz")}
       </h2>
