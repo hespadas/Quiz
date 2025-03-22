@@ -2,7 +2,7 @@ from rest_framework import filters, generics, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,6 +14,12 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
+
+
+class IsOwner(BasePermission):
+    @staticmethod
+    def has_object_permission(request, view, obj):
+        return obj.created_by == request.user
 
 
 @permission_classes([IsAuthenticated])
@@ -50,20 +56,20 @@ class GeneralQuizListView(generics.ListAPIView):
         return Quiz.objects.filter(is_general=True).order_by('-created_at')
 
 
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsOwner])
 class QuizDetailView(generics.RetrieveAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
 
 
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsOwner])
 class QuizUpdateView(generics.UpdateAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
     parser_classes = [MultiPartParser, FormParser]
 
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+    def get_queryset(self):
+        return Quiz.objects.filter(created_by=self.request.user)
 
 
 @permission_classes([IsAuthenticated])
