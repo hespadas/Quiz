@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "../../../services/axiosConfig";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import authService from "../../../services/authService";
 
 const QuizList = () => {
   const { t } = useTranslation();
@@ -20,7 +21,26 @@ const QuizList = () => {
 
   const { loading, error } = fetchStatus;
 
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   useEffect(() => {
+    const checkUserAuth = async () => {
+      try {
+        await authService.checkAuth();
+        setIsAuthenticated(true);
+      } catch (error) {
+        navigate("/login");
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    checkUserAuth();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!authChecked || !isAuthenticated) return;
+
     const fetchQuizzes = async () => {
       setFetchStatus((prev) => ({ ...prev, loading: true, error: "" }));
 
@@ -41,23 +61,32 @@ const QuizList = () => {
           loading: false,
           error: t("Failed to load quizzes."),
         }));
-
-        if (err.response && err.response.status === 401) {
-          navigate("/login");
-        }
-        return;
       }
 
       setFetchStatus((prev) => ({ ...prev, loading: false, error: "" }));
     };
 
     void fetchQuizzes();
-  }, [currentPage, searchQuery, ordering, navigate, t]);
+  }, [
+    authChecked,
+    isAuthenticated,
+    currentPage,
+    searchQuery,
+    ordering,
+    navigate,
+    t,
+  ]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
   };
+
+  if (!authChecked) {
+    return (
+      <div className="p-6 text-center">{t("Verifying authentication...")}</div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen p-6">

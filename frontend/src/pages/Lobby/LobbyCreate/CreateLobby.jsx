@@ -3,6 +3,7 @@ import axios from "../../../services/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import authService from "../../../services/authService";
 
 const CreateLobby = () => {
   const { t } = useTranslation();
@@ -12,13 +13,30 @@ const CreateLobby = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("newest");
 
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   useEffect(() => {
+    const checkUserAuth = async () => {
+      try {
+        await authService.checkAuth();
+        setIsAuthenticated(true);
+      } catch (error) {
+        navigate("/login");
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    checkUserAuth();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!authChecked || !isAuthenticated) return;
     const fetchQuizzes = async () => {
       try {
         const [userQuizzesResponse, generalQuizzesResponse] = await Promise.all(
           [axios.get("/quizzes/"), axios.get("/quizzes/general/")]
         );
-
         setAvailableQuizzes(userQuizzesResponse.data.results);
         setGeneralQuizzes(generalQuizzesResponse.data.results);
       } catch (error) {
@@ -26,7 +44,7 @@ const CreateLobby = () => {
       }
     };
     void fetchQuizzes();
-  }, [t]);
+  }, [t, authChecked, isAuthenticated]);
 
   const handleCreateLobby = async (quizId) => {
     try {
@@ -94,7 +112,7 @@ const CreateLobby = () => {
           {t("Create Game Lobby")}
         </h2>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4  rounded-lg">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4 rounded-lg">
           <input
             type="text"
             value={searchTerm}

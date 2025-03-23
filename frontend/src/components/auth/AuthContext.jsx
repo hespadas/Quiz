@@ -1,6 +1,5 @@
-// src/components/auth/AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import authService from "../../services/authService";
 
 export const AuthContext = createContext();
@@ -9,18 +8,23 @@ export const AuthProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [user, setUser] = useState(null);
   const [tokenExpiry, setTokenExpiry] = useState(null);
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const initializeAuth = async () => {
-      if (
-        location.pathname === "/login" ||
-        location.pathname === "/register" ||
-        location.pathname === "/confirm-email" ||
-        location.pathname === "/forgot-password" ||
-        location.pathname.startsWith("/reset-password")
-      ) {
+      // Se rota for pública, não tenta autenticar
+      const publicPaths = [
+        "/login",
+        "/register",
+        "/confirm-email",
+        "/forgot-password",
+        "/",
+        "/lobby/join/",
+      ];
+
+      const isResetPassword = location.pathname.startsWith("/reset-password");
+      if (publicPaths.includes(location.pathname) || isResetPassword) {
         setIsAuth(false);
         setUser(null);
         return;
@@ -43,6 +47,7 @@ export const AuthProvider = ({ children }) => {
         navigate("/login");
       }
     };
+
     initializeAuth();
   }, [location.pathname, navigate]);
 
@@ -68,7 +73,6 @@ export const AuthProvider = ({ children }) => {
       const timeUntilExpiry = tokenExpiry - currentTime - 5 * 1000;
 
       const timeoutId = setTimeout(renewTokenIfNecessary, timeUntilExpiry);
-
       return () => clearTimeout(timeoutId);
     }
   }, [isAuth, tokenExpiry, navigate]);

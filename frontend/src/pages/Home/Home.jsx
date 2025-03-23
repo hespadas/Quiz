@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import axios from "../../services/axiosConfig";
+import apiPublic from "../../services/apiPublic";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -9,11 +9,7 @@ export const Home = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        await axios.get("/home/");
-      } catch (e) {
-        navigate("/login");
-      }
+      await apiPublic.get("/home/");
     };
     void fetchData();
   }, [navigate]);
