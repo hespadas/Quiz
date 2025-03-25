@@ -1,6 +1,4 @@
-from django.urls import include, path
-from rest_framework.routers import DefaultRouter
-from rest_framework_nested.routers import NestedDefaultRouter
+from django.urls import path
 
 from . import views
 from .views.game_views import GameCreateView, GameRetrieveView
