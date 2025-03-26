@@ -64,6 +64,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             "type": "game_started",
             "quiz_id": event.get("quiz_id"),
         })
+        await self.close(code=4000)
 
     async def send_user_list(self, safe=False):
         if not LobbyManager.has_lobby(self.code):
