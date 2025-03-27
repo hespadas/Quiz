@@ -12,8 +12,7 @@ export const AuthProvider = ({ children }) => {
   const location = useLocation();
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      // Se rota for pública, não tenta autenticar
+    (async () => {
       const publicPaths = [
         "/login",
         "/register",
@@ -24,11 +23,9 @@ export const AuthProvider = ({ children }) => {
       ];
 
       const isResetPassword = location.pathname.startsWith("/reset-password");
-      if (publicPaths.includes(location.pathname) || isResetPassword) {
-        setIsAuth(false);
-        setUser(null);
-        return;
-      }
+      const isPublic = publicPaths.some((path) =>
+        location.pathname.startsWith(path)
+      );
 
       try {
         await authService.checkAuth();
@@ -44,11 +41,12 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         setIsAuth(false);
         setUser(null);
-        navigate("/login");
-      }
-    };
 
-    initializeAuth();
+        if (!isPublic && !isResetPassword) {
+          navigate("/login");
+        }
+      }
+    })();
   }, [location.pathname, navigate]);
 
   useEffect(() => {

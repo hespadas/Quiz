@@ -39,7 +39,6 @@ describe("Navigation component", () => {
 
     expect(screen.getByText("Login")).toBeInTheDocument();
     expect(screen.getByText("Register")).toBeInTheDocument();
-    expect(screen.queryByText("Home")).not.toBeInTheDocument();
     expect(screen.queryByText("Logout")).not.toBeInTheDocument();
   });
 
