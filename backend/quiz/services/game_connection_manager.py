@@ -7,12 +7,10 @@ class ConnectionManager:
 
     async def add_connection(self, username, channel_layer, room_group_name, channel_name):
         room_connections = self.cache_manager.get_room_user_connections()
-        if username in room_connections:
-            room_connections[username] += 1
-        else:
-            room_connections[username] = 1
+        if username not in room_connections:
             user_count = self.cache_manager.get_user_count() + 1
             self.cache_manager.set_user_count(user_count)
+        room_connections[username] = room_connections.get(username, 0) + 1
 
         self.cache_manager.set_room_user_connections(room_connections)
         await channel_layer.group_add(room_group_name, channel_name)

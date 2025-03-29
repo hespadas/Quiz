@@ -22,10 +22,8 @@ const Lobby = () => {
 
   const { gameInfo } = useLobbyData(code, navigate);
 
-  // Determina o nome a ser usado para identificar o usuário
   const currentUsername = user?.username || guestName;
 
-  // Monta a URL WebSocket incluindo o username na query string
   const wsUrl = useMemo(() => {
     if (!gameInfo || !code || !currentUsername) return null;
 
@@ -68,12 +66,11 @@ const Lobby = () => {
   };
 
   const handleNameSubmit = (name) => {
-    setGuestName(name);
-    // O envio do "join" só é possível depois da conexão WebSocket ser aberta,
-    // então pode ser necessário aguardar ou mover isso para dentro de `useWebSocket`.
+    const uniqueName = `${name}_${Math.floor(Math.random() * 10000)}`;
+    localStorage.setItem("guestName", uniqueName);
+    setGuestName(uniqueName);
   };
 
-  // Se não tem user nem guestName ainda, pede nome
   if (!currentUsername) {
     return <NameInputComponent onSubmit={handleNameSubmit} />;
   }

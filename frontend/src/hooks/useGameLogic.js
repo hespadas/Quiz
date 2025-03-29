@@ -18,6 +18,7 @@ const useGameLogic = () => {
   const [finalScores, setFinalScores] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const username = user?.username || localStorage.getItem("guestName");
 
   const selectedOptionsRef = useRef(selectedOptions);
   useEffect(() => {
@@ -39,6 +40,7 @@ const useGameLogic = () => {
   const { sendMessage, socket } = useGameWebSocket(
     gameRoom,
     code,
+    username,
     handleWebSocketMessage,
     !gameOver
   );
@@ -46,7 +48,7 @@ const useGameLogic = () => {
   const submitQuiz = useSubmitQuiz(
     gameRoom,
     selectedOptionsRef,
-    user,
+    user || { username: localStorage.getItem("guestName") }, // <-- ajuste aqui
     sendMessage,
     setScore,
     setIsSubmitting
