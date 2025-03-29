@@ -58,8 +58,8 @@ class LobbyManager:
         return real_host_username
 
     @classmethod
-    def user_is_host(cls, code, user):
-        return user.username == cls.get_real_host(code)
+    def user_is_host(cls, code, username):
+        return username == cls.get_real_host(code)
 
     @staticmethod
     @database_sync_to_async
