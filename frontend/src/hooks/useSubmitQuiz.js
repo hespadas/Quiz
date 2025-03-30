@@ -21,12 +21,12 @@ const useSubmitQuiz = (
     const totalQuestions = gameRoom.quiz.questions.length;
     let correctAnswers = 0;
 
-    gameRoom.quiz.questions.forEach((question, index) => {
-      const selected = selectedOptionsRef.current[index];
-      if (selected === question.correct_answer) correctAnswers++;
+    gameRoom.quiz.questions.forEach((question) => {
+      const selected = selectedOptionsRef.current[question.id];
+      if (selected && selected === question.correct_answer) correctAnswers++;
     });
 
-    const score = (correctAnswers / totalQuestions) * 100;
+    const score = correctAnswers;
     setScore({ score, total: totalQuestions });
 
     if (user && user.token) {
