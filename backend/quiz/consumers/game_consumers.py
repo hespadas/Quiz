@@ -57,9 +57,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             "question_index": event["question_index"],
         }))
 
-    async def quiz_finished(self):
-        await self.send(text_data=json.dumps({"type": "quiz_finished"}))
-
     async def scores_update_message(self, event):
         await self.send(text_data=json.dumps({
             "type": "scores_update",

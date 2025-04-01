@@ -17,8 +17,6 @@ class GameRoomEventHandler:
             await self.handle_advance_question(data)
         elif event_type == "user_score":
             await self.handle_user_score(data)
-        elif event_type == "quiz_finished":
-            await self.handle_quiz_finished()
 
     async def handle_advance_question(self, data):
         score_manager = ScoreManager(self.room_code)
@@ -39,26 +37,6 @@ class GameRoomEventHandler:
 
         if score_manager.submissions_complete():
             await self.broadcast_scores()
-
-    async def handle_quiz_finished(self):
-        score_manager = ScoreManager(self.room_code)
-        score_manager.reset_on_quiz_finished()
-
-        inactivity_timeout = 5
-        interval = 1
-        time_waited = 0
-
-        while True:
-            if score_manager.submissions_complete():
-                break
-            time_waited += interval
-            if time_waited >= inactivity_timeout:
-                break
-            await asyncio.sleep(interval)
-
-        await self.broadcast_scores()
-        await self.consumer.delete_game_room()
-        await self.consumer.send(text_data=json.dumps({"type": "quiz_finished"}))
 
     async def broadcast_scores(self):
         score_manager = ScoreManager(self.room_code)
