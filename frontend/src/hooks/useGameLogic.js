@@ -28,9 +28,7 @@ const useGameLogic = () => {
   const [quizFinished, setQuizFinished] = useState(false);
 
   const handleWebSocketMessage = useCallback((data) => {
-    if (data.type === "quiz_finished") {
-      setQuizFinished(true);
-    } else if (data.type === "question_advanced") {
+    if (data.type === "question_advanced") {
       setCurrentQuestionIndex(data.question_index);
     } else if (data.type === "scores_update") {
       setFinalScores(data.scores);
@@ -48,18 +46,11 @@ const useGameLogic = () => {
   const submitQuiz = useSubmitQuiz(
     gameRoom,
     selectedOptionsRef,
-    user || { username: localStorage.getItem("guestName") }, // <-- ajuste aqui
+    user || { username: localStorage.getItem("guestName") },
     sendMessage,
     setScore,
     setIsSubmitting
   );
-
-  useEffect(() => {
-    if (quizFinished) {
-      submitQuiz();
-      setGameOver(true);
-    }
-  }, [quizFinished, submitQuiz]);
 
   useEffect(() => {
     if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
