@@ -17,11 +17,13 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         self.room_group_name = None
         self.room_code = None
         self.username = None
+        self.scores_sent = False
 
     async def connect(self):
         self.room_code = self.scope["url_route"]["kwargs"]["code"]
         self.room_group_name = f"game_room_{self.room_code}"
         self.username = self.scope.get("username")
+        self.scores_sent = False
 
         self.cache_manager = GameRoomCache(self.room_code)
         self.cache_manager.initialize()

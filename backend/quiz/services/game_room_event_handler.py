@@ -35,7 +35,9 @@ class GameRoomEventHandler:
         if username:
             score_manager.update_user_score(username, score, total)
 
-        if score_manager.submissions_complete():
+        # Se todas as submissões estiverem completas e ainda não enviamos os scores:
+        if score_manager.submissions_complete() and not self.consumer.scores_sent:
+            self.consumer.scores_sent = True
             await self.broadcast_scores()
 
     async def broadcast_scores(self):

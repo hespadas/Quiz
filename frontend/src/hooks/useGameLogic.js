@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { useContext } from "react";
 import useGameRoom from "./useGameRoom";
 import useGameWebSocket from "./useGameWebSocket";
 import useSubmitQuiz from "./useSubmitQuiz";
@@ -18,14 +17,13 @@ const useGameLogic = () => {
   const [finalScores, setFinalScores] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [quizFinished, setQuizFinished] = useState(false);
   const username = user?.username || localStorage.getItem("guestName");
 
   const selectedOptionsRef = useRef(selectedOptions);
   useEffect(() => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
-
-  const [quizFinished, setQuizFinished] = useState(false);
 
   const handleWebSocketMessage = useCallback((data) => {
     if (data.type === "question_advanced") {
@@ -53,10 +51,15 @@ const useGameLogic = () => {
   );
 
   useEffect(() => {
-    if (gameRoom && currentQuestionIndex >= gameRoom.quiz.questions.length) {
+    if (
+      gameRoom &&
+      !quizFinished &&
+      currentQuestionIndex >= gameRoom.quiz.questions.length
+    ) {
       submitQuiz();
+      setQuizFinished(true);
     }
-  }, [currentQuestionIndex, gameRoom, submitQuiz]);
+  }, [currentQuestionIndex, gameRoom, submitQuiz, quizFinished]);
 
   useEffect(() => {
     if (gameOver && socket) {
