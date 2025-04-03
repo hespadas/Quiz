@@ -24,13 +24,29 @@ const useGameLogic = () => {
     selectedOptionsRef.current = selectedOptions;
   }, [selectedOptions]);
 
-  const handleWebSocketMessage = useCallback((data) => {
-    if (data.type === "question_advanced") {
-      setCurrentQuestionIndex(data.question_index);
-    } else if (data.type === "scores_update") {
-      setFinalScores(data.scores);
+  const submitQuizRef = useRef(null);
+
+  const triggerSubmitQuiz = useCallback(() => {
+    if (submitQuizRef.current) {
+      submitQuizRef.current();
+    } else {
+      console.warn("Submit quiz function not yet initialized");
     }
   }, []);
+
+  const handleWebSocketMessage = useCallback(
+    (data) => {
+      if (data.type === "question_advanced") {
+        setCurrentQuestionIndex(data.question_index);
+      } else if (data.type === "scores_update") {
+        setFinalScores(data.scores);
+      } else if (data.type === "quiz_finished") {
+        setQuizFinished(true);
+        triggerSubmitQuiz();
+      }
+    },
+    [triggerSubmitQuiz]
+  );
 
   const { sendMessage } = useGameWebSocket(
     gameRoom,
@@ -50,15 +66,19 @@ const useGameLogic = () => {
   );
 
   useEffect(() => {
+    submitQuizRef.current = submitQuiz;
+  }, [submitQuiz]);
+
+  useEffect(() => {
     if (
       gameRoom &&
       !quizFinished &&
       currentQuestionIndex >= gameRoom.quiz.questions.length
     ) {
-      submitQuiz();
+      triggerSubmitQuiz();
       setQuizFinished(true);
     }
-  }, [currentQuestionIndex, gameRoom, submitQuiz, quizFinished]);
+  }, [currentQuestionIndex, gameRoom, quizFinished, triggerSubmitQuiz]);
 
   return {
     gameRoom,

@@ -68,3 +68,8 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
     async def delete_game_room(self):
         async_delete = database_sync_to_async(Game.objects.filter(code=self.room_code).delete)
         await async_delete()
+
+    async def quiz_finished(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "quiz_finished"
+        }))
