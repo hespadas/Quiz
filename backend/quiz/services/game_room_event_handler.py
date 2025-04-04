@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 from quiz.services.score_manager import ScoreManager
 
@@ -32,11 +31,26 @@ class GameRoomEventHandler:
         score_manager = ScoreManager(self.room_code)
         if hasattr(score_manager, 'mark_quiz_finished'):
             score_manager.mark_quiz_finished()
+
         await self.channel_layer.group_send(
             self.room_group_name,
             {"type": "quiz_finished"}
         )
+
+        await asyncio.sleep(2)
+
+        score_manager = ScoreManager(self.room_code)
+        if not score_manager.submissions_complete():
+            await asyncio.sleep(3)
+
         await self.broadcast_scores()
+
+        await asyncio.sleep(5)
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {"type": "close_connection_message"}
+        )
 
     async def handle_user_score(self, data):
         score_manager = ScoreManager(self.room_code)

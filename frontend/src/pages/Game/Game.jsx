@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import useGameLogic from "../../hooks/useGameLogic";
 import Scoreboard from "./components/Scoreboard";
@@ -22,6 +22,14 @@ const Game = () => {
     isSubmitting,
   } = useGameLogic();
 
+  const [showScoreboard, setShowScoreboard] = useState(false);
+
+  useEffect(() => {
+    if (score !== null && finalScores) {
+      setShowScoreboard(true);
+    }
+  }, [score, finalScores]);
+
   if (!gameRoom) {
     return <p>{error || t("Carregando sala de jogo...")}</p>;
   }
@@ -30,7 +38,7 @@ const Game = () => {
     return <WaitScreen message="Carregando resultados, por favor aguarde..." />;
   }
 
-  if (score !== null && finalScores) {
+  if (showScoreboard || (score !== null && finalScores)) {
     return <Scoreboard finalScores={finalScores} host={gameRoom.host} />;
   }
 

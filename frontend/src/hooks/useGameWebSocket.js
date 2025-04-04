@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import useWebSocket from "./useWebSocket";
 
 function useGameWebSocket(
@@ -7,7 +7,7 @@ function useGameWebSocket(
   username,
   onMessage,
   shouldReconnect,
-  gameOver
+  gameOver = false
 ) {
   const wsUrl = useMemo(() => {
     if (!gameRoom || !username || gameOver) return null;
@@ -38,6 +38,12 @@ function useGameWebSocket(
     handleWebSocketMessage,
     shouldReconnect
   );
+
+  useEffect(() => {
+    if (gameOver) {
+      closeSocket();
+    }
+  }, [gameOver, closeSocket]);
 
   return { sendMessage, socket, closeSocket };
 }

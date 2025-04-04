@@ -18,11 +18,9 @@ const useWebSocket = (url, onMessage, shouldReconnect = true) => {
     let isMounted = true;
 
     const connect = () => {
-      // Se não houver URL, se não deve reconectar ou se o fechamento foi manual, não conecta
       if (!url || !shouldReconnect || manuallyClosedRef.current || !isMounted)
         return;
 
-      // Se já houver uma conexão aberta, não reconecta.
       if (
         socketRef.current &&
         socketRef.current.readyState === WebSocket.OPEN

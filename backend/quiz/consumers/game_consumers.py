@@ -73,3 +73,9 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "quiz_finished"
         }))
+
+    async def close_connection_message(self, event):
+
+        await self.send(text_data=json.dumps({
+            "type": "close_connection"
+        }))

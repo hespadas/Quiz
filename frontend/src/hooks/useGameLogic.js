@@ -17,6 +17,7 @@ const useGameLogic = () => {
   const [finalScores, setFinalScores] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [readyToClose, setReadyToClose] = useState(false);
   const username = user?.username || localStorage.getItem("guestName");
 
   const selectedOptionsRef = useRef(selectedOptions);
@@ -25,6 +26,7 @@ const useGameLogic = () => {
   }, [selectedOptions]);
 
   const submitQuizRef = useRef(null);
+  const closeSocketRef = useRef(null);
 
   const triggerSubmitQuiz = useCallback(() => {
     if (submitQuizRef.current) {
@@ -40,21 +42,41 @@ const useGameLogic = () => {
         setCurrentQuestionIndex(data.question_index);
       } else if (data.type === "scores_update") {
         setFinalScores(data.scores);
+        setReadyToClose(true);
       } else if (data.type === "quiz_finished") {
         setQuizFinished(true);
         triggerSubmitQuiz();
+      } else if (data.type === "close_connection") {
+        if (readyToClose && closeSocketRef.current) {
+          closeSocketRef.current();
+        }
       }
     },
-    [triggerSubmitQuiz]
+    [triggerSubmitQuiz, readyToClose]
   );
 
-  const { sendMessage } = useGameWebSocket(
+  const { sendMessage, socket, closeSocket } = useGameWebSocket(
     gameRoom,
     code,
     username,
     handleWebSocketMessage,
-    true
+    true,
+    false
   );
+
+  useEffect(() => {
+    closeSocketRef.current = closeSocket;
+  }, [closeSocket]);
+
+  useEffect(() => {
+    if (quizFinished && finalScores && readyToClose && closeSocketRef.current) {
+      const timer = setTimeout(() => {
+        closeSocketRef.current();
+      }, 8000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [quizFinished, finalScores, readyToClose]);
 
   const submitQuiz = useSubmitQuiz(
     gameRoom,
@@ -93,6 +115,7 @@ const useGameLogic = () => {
     sendMessage,
     user,
     isSubmitting,
+    quizFinished,
   };
 };
 
