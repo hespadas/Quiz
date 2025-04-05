@@ -25,7 +25,6 @@ class RegisterUserViewTests(APITestCase):
     def test_register_user_successfully(self):
         response = self.client.post(self.url, self.valid_data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        # assert response.data["message"] == "User created successfully, confirm your email"
         user = User.objects.get(username="testuser")
         assert user is not None
         assert user.email == "test@example.com"

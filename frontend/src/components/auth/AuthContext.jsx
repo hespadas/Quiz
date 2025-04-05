@@ -1,30 +1,31 @@
-// src/components/auth/AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import authService from "../../services/authService";
 
-export const AuthContext = createContext();
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [user, setUser] = useState(null);
   const [tokenExpiry, setTokenExpiry] = useState(null);
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      if (
-        location.pathname === "/login" ||
-        location.pathname === "/register" ||
-        location.pathname === "/confirm-email" ||
-        location.pathname === "/forgot-password" ||
-        location.pathname.startsWith("/reset-password")
-      ) {
-        setIsAuth(false);
-        setUser(null);
-        return;
-      }
+    (async () => {
+      const publicPaths = [
+        "/login",
+        "/register",
+        "/confirm-email",
+        "/forgot-password",
+        "/",
+        "/lobby/join/",
+      ];
+
+      const isResetPassword = location.pathname.startsWith("/reset-password");
+      const isPublic = publicPaths.some((path) =>
+        location.pathname.startsWith(path)
+      );
 
       try {
         await authService.checkAuth();
@@ -40,10 +41,12 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         setIsAuth(false);
         setUser(null);
-        navigate("/login");
+
+        if (!isPublic && !isResetPassword) {
+          navigate("/login");
+        }
       }
-    };
-    initializeAuth();
+    })();
   }, [location.pathname, navigate]);
 
   useEffect(() => {
@@ -68,7 +71,6 @@ export const AuthProvider = ({ children }) => {
       const timeUntilExpiry = tokenExpiry - currentTime - 5 * 1000;
 
       const timeoutId = setTimeout(renewTokenIfNecessary, timeUntilExpiry);
-
       return () => clearTimeout(timeoutId);
     }
   }, [isAuth, tokenExpiry, navigate]);

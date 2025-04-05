@@ -34,10 +34,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 CookieManager.set_refresh_token_cookie(response, refresh_token)
                 response.data["access_token_exp"] = access_token_exp
             return response
-        except Exception:
+        except Exception as e:
             return Response(
-                {"detail": "No active account found with the given credentials"},
-                status=status.HTTP_401_UNAUTHORIZED
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 

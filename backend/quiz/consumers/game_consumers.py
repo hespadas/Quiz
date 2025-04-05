@@ -16,18 +16,21 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         self.cache_manager = None
         self.room_group_name = None
         self.room_code = None
+        self.username = None
+        self.scores_sent = False
 
     async def connect(self):
         self.room_code = self.scope["url_route"]["kwargs"]["code"]
         self.room_group_name = f"game_room_{self.room_code}"
-        username = self.scope["user"].username
+        self.username = self.scope.get("username")
+        self.scores_sent = False
 
         self.cache_manager = GameRoomCache(self.room_code)
         self.cache_manager.initialize()
 
         self.connection_manager = ConnectionManager(self.room_code, self.cache_manager)
         await self.connection_manager.add_connection(
-            username,
+            self.username,
             self.channel_layer,
             self.room_group_name,
             self.channel_name
@@ -35,11 +38,9 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        username = self.scope["user"].username
-
         if self.connection_manager:
             await self.connection_manager.remove_connection(
-                username,
+                self.username,
                 self.channel_layer,
                 self.room_group_name,
                 self.channel_name
@@ -49,7 +50,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data=None):
         data = json.loads(text_data)
-
         event_handler = GameRoomEventHandler(self)
         await event_handler.handle(data)
 
@@ -58,9 +58,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             "type": "question_advanced",
             "question_index": event["question_index"],
         }))
-
-    async def quiz_finished(self):
-        await self.send(text_data=json.dumps({"type": "quiz_finished"}))
 
     async def scores_update_message(self, event):
         await self.send(text_data=json.dumps({
@@ -71,3 +68,13 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
     async def delete_game_room(self):
         async_delete = database_sync_to_async(Game.objects.filter(code=self.room_code).delete)
         await async_delete()
+
+    async def quiz_finished(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "quiz_finished"
+        }))
+
+    async def close_connection_message(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "close_connection"
+        }))

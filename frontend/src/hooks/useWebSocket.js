@@ -3,10 +3,23 @@ import { toast } from "react-toastify";
 
 const useWebSocket = (url, onMessage, shouldReconnect = true) => {
   const socketRef = useRef(null);
+  const manuallyClosedRef = useRef(false);
 
-  const connectWebSocket = useCallback(
-    (attempt = 1) => {
-      if (!url || !shouldReconnect) return;
+  const closeSocket = useCallback(() => {
+    manuallyClosedRef.current = true;
+    if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    let reconnectTimeout;
+    let isMounted = true;
+
+    const connect = () => {
+      if (!url || !shouldReconnect || manuallyClosedRef.current || !isMounted)
+        return;
 
       if (
         socketRef.current &&
@@ -23,18 +36,13 @@ const useWebSocket = (url, onMessage, shouldReconnect = true) => {
       };
 
       ws.onerror = (error) => {
-        console.error("[WebSocket] Erro:", error);
-        if (attempt < 5 && shouldReconnect) {
-          setTimeout(() => connectWebSocket(attempt + 1), attempt * 1000);
-        } else {
-          toast.error("WebSocket connection failed after multiple attempts.");
-        }
+        console.error("[WebSocket] Error:", error);
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (onMessage) {
+          if (typeof onMessage === "function") {
             onMessage(data);
           }
         } catch (err) {
@@ -43,40 +51,34 @@ const useWebSocket = (url, onMessage, shouldReconnect = true) => {
       };
 
       ws.onclose = () => {
-        if (shouldReconnect) {
-          setTimeout(() => connectWebSocket(), 2000);
+        console.info("[WebSocket] Connection closed.");
+        if (shouldReconnect && isMounted && !manuallyClosedRef.current) {
+          reconnectTimeout = setTimeout(connect, 2000);
         }
       };
-    },
-    [url, onMessage, shouldReconnect]
-  );
+    };
 
-  useEffect(() => {
-    if (!url) return;
-    connectWebSocket();
+    connect();
+
     return () => {
+      isMounted = false;
+      clearTimeout(reconnectTimeout);
       if (socketRef.current) {
         socketRef.current.close();
+        socketRef.current = null;
       }
     };
-  }, [url, connectWebSocket]);
+  }, [url, shouldReconnect, onMessage]);
 
-  const sendMessage = useCallback(
-    (message) => {
-      if (
-        socketRef.current &&
-        socketRef.current.readyState === WebSocket.OPEN
-      ) {
-        socketRef.current.send(JSON.stringify(message));
-      } else {
-        toast.error("Connection lost. Reconnecting...");
-        connectWebSocket();
-      }
-    },
-    [connectWebSocket]
-  );
+  const sendMessage = useCallback((message) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(message));
+    } else {
+      toast.error("Connection lost. Reconnecting...");
+    }
+  }, []);
 
-  return { sendMessage, socket: socketRef.current };
+  return { sendMessage, socket: socketRef.current, closeSocket };
 };
 
 export default useWebSocket;

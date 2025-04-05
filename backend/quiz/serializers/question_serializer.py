@@ -11,10 +11,16 @@ class OptionSerializer(serializers.ModelSerializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
     options = OptionSerializer(many=True)
+    correct_answer = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
-        fields = ['id', 'text', 'quiz', 'order', 'question_type', 'options']
+        fields = ['id', 'text', 'quiz', 'order', 'question_type', 'options', 'correct_answer']
+
+    @staticmethod
+    def get_correct_answer(obj):
+        correct_option = obj.options.filter(is_correct=True).first()
+        return correct_option.id if correct_option else None
 
     def create(self, validated_data):  # noqa: PLR6301
         options_data = validated_data.pop('options', [])

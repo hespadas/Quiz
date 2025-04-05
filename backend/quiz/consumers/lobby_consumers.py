@@ -9,17 +9,19 @@ class LobbyConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.code = None
+        self.username = None
 
     async def connect(self):
         self.code = self.scope["url_route"]["kwargs"]["code"]
-        user = self.scope["user"]
-        if not user.is_authenticated:
+        self.username = self.scope.get("username")
+
+        if not self.username:
             await self.close()
             return
 
         await self.accept()
 
-        LobbyManager.add_user(self.code, user.username)
+        LobbyManager.add_user(self.code, self.username)
 
         real_host_username = await LobbyManager.initialize_real_host(self.code)
         if not real_host_username:
@@ -31,26 +33,24 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         await self.send_user_list()
 
     async def disconnect(self, close_code):
-        user = self.scope["user"]
-        if user.is_authenticated:
+        if self.username:
             await self.channel_layer.group_discard(self.code, self.channel_name)
 
             if LobbyManager.has_lobby(self.code):
-                LobbyManager.remove_user(self.code, user.username)
+                LobbyManager.remove_user(self.code, self.username)
 
                 if LobbyManager.has_lobby(self.code):
                     await self.send_user_list(safe=True)
 
     async def receive(self, text_data=None, bytes_data=None):
-        user = self.scope["user"]
-        if not user.is_authenticated:
+        if not self.username:
             return
 
         data = json.loads(text_data)
         message_type = data.get("type")
 
         if message_type == "start_game":
-            if LobbyManager.user_is_host(self.code, user):
+            if LobbyManager.user_is_host(self.code, self.username):
                 await self.channel_layer.group_send(
                     self.code,
                     {
@@ -64,6 +64,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             "type": "game_started",
             "quiz_id": event.get("quiz_id"),
         })
+        await self.close(code=4000)
 
     async def send_user_list(self, safe=False):
         if not LobbyManager.has_lobby(self.code):

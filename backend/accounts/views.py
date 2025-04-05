@@ -3,7 +3,7 @@ import threading
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
@@ -44,7 +44,7 @@ class RegisterUserView(APIView):
             threading.Thread(target=send_email_async, args=(user,)).start()
             return response
 
-        return Response(serializer.errors, status=422)
+        return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class ConfirmEmailView(APIView):

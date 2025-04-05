@@ -45,3 +45,34 @@ class TokenAuthMiddleware(BaseMiddleware):
             logger.info("TokenAuthMiddleware: No token found. User set to AnonymousUser.")
 
         return await super().__call__(scope, receive, send)
+
+
+class UsernameQueryMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        query_string = scope.get("query_string", b"").decode()
+        query_params = parse_qs(query_string)
+        username = query_params.get("username", [None])[0]
+        scope["username"] = username or "Guest"
+        # Opcional: define scope["user"] também, se necessário
+        scope["user"] = AnonymousUser()
+        return await self.app(scope, receive, send)
+
+
+class UsernameQueryMiddlewareInstance:
+    def __init__(self, scope, middleware):
+        self.scope = dict(scope)
+        self.middleware = middleware
+
+    async def __call__(self, receive, send):
+        query_string = self.scope["query_string"].decode()
+        query_params = parse_qs(query_string)
+        username = query_params.get("username", [None])[0]
+
+        self.scope["user"] = AnonymousUser()
+        self.scope["username"] = username or "Guest"
+
+        inner = self.middleware.inner(self.scope)
+        return await inner(receive, send)

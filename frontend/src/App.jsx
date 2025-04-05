@@ -9,14 +9,14 @@ import Home from "./pages/Home/Home";
 import GameRoom from "./pages/Game/Game";
 import { Login } from "./pages/Auth/Login/Login";
 import Register from "./pages/Auth/Register/Register";
-import Creation from "./pages/Quiz/QuizCreate/Creation";
-import List from "./pages/Quiz/QuizList/List";
-import Detail from "./pages/Quiz/QuizDetail/Detail";
-import Edit from "./pages/Quiz/QuizEdit/Edit";
-import EditQuestions from "./pages/Quiz/QuizEdit/EditQuestions";
-import JoinLobby from "./pages/Lobby/LobbyJoin/JoinLobby";
+import Creation from "./pages/Quiz/QuizCreate/QuizCreation";
+import List from "./pages/Quiz/QuizList/QuizList";
+import Detail from "./pages/Quiz/QuizDetail/QuizDetail";
+import Edit from "./pages/Quiz/QuizEdit/QuizEdit";
+import FormQuestions from "./components/quiz/FormQuestions";
+import LobbyJoin from "./pages/Lobby/LobbyJoin/LobbyJoin";
 import Lobby from "./pages/Lobby/Lobby/Lobby";
-import CreateLobby from "./pages/Lobby/LobbyCreate/CreateLobby";
+import LobbyCreate from "./pages/Lobby/LobbyCreate/LobbyCreate";
 import EmailConfirmation from "./pages/Auth/EmailConfirmation/EmailConfirmation";
 import ForgotPassword from "./pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword/ResetPassword";
@@ -36,11 +36,11 @@ function App() {
           <Route path="/quizzes" element={<List />} />
           <Route path="/quizzes/:id" element={<Detail />} />
           <Route path="/quiz/edit/:id/" element={<Edit />} />
-          <Route path="/quiz/:id/edit-questions/" element={<EditQuestions />} />
+          <Route path="/quiz/:id/edit-questions/" element={<FormQuestions />} />
           <Route path="/game_rooms/:code/" element={<GameRoom />} />
-          <Route path="/lobby/join" element={<JoinLobby />} />
+          <Route path="/lobby/join" element={<LobbyJoin />} />
           <Route path="/lobby/:code" element={<Lobby />} />
-          <Route path="/lobby/create" element={<CreateLobby />} />
+          <Route path="/lobby/create" element={<LobbyCreate />} />
           <Route
             path="/confirm-email/:uidb64/:token/"
             element={<EmailConfirmation />}

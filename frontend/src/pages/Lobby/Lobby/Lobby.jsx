@@ -1,12 +1,14 @@
-// LobbyContainer.js
-import React, { useContext, useMemo, useCallback, useState } from "react";
+import React, { useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { AuthContext } from "../../../components/auth/AuthContext";
 import { useLobbyData } from "../../../hooks/useLobbyData";
 import useWebSocket from "../../../hooks/useWebSocket";
 import LobbyPresentation from "./components/LobbyPresentation";
+import NameInputComponent from "./components/NameInputComponent";
+import { useGuestName } from "../../../hooks/useGuestName";
+import { useLobbyMessageHandler } from "../../../hooks/useLobbyMessageHandler";
+import { useLobbyWebSocket } from "../../../hooks/useLobbyWebSocket";
 
 const Lobby = () => {
   const { t } = useTranslation();
@@ -14,57 +16,46 @@ const Lobby = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  const [connectedUsers, setConnectedUsers] = useState([]);
-  const [hostUsername, setHostUsername] = useState(null);
-
+  const { currentUsername, handleNameSubmit } = useGuestName(user);
   const { gameInfo } = useLobbyData(code, navigate);
+  const wsUrl = useLobbyWebSocket(gameInfo, code, currentUsername);
 
-  const wsUrl = useMemo(() => {
-    if (!gameInfo || !code) return null;
-    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const backendHost = process.env.REACT_APP_BACKEND_HOST || "localhost";
-    const backendPort = process.env.REACT_APP_BACKEND_PORT || "8000";
-    return `${wsProtocol}://${backendHost}:${backendPort}/ws/lobby/${code}/`;
-  }, [gameInfo, code]);
-
-  const handleWebSocketMessage = useCallback(
-    (data) => {
-      switch (data.type) {
-        case "user_list":
-          setConnectedUsers(data.users);
-          setHostUsername(data.host);
-          break;
-        case "game_started":
-          navigate(`/game_rooms/${code}/`);
-          break;
-        default:
-          console.warn("[Lobby] Unhandled WebSocket message:", data);
-      }
-    },
-    [code, navigate]
-  );
+  const { handleWebSocketMessage, connectedUsers, hostUsername } =
+    useLobbyMessageHandler(code, navigate);
 
   const { sendMessage } = useWebSocket(wsUrl, handleWebSocketMessage);
-  const isHost = hostUsername === user?.username;
+
+  const isHost = hostUsername === currentUsername;
 
   const handleStartGame = () => {
-    if (!isHost) return;
-    if (!gameInfo?.quiz?.id) return;
+    if (!isHost || !gameInfo?.quiz?.id) return;
     sendMessage({
       type: "start_game",
       quiz_id: gameInfo.quiz.id,
     });
   };
 
+  if (!currentUsername) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden">
+          <NameInputComponent onSubmit={handleNameSubmit} />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <LobbyPresentation
-      gameInfo={gameInfo}
-      connectedUsers={connectedUsers}
-      hostUsername={hostUsername}
-      isHost={isHost}
-      onStartGame={handleStartGame}
-      t={t}
-    />
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 py-8 px-4 flex items-center justify-center">
+      <LobbyPresentation
+        gameInfo={gameInfo}
+        connectedUsers={connectedUsers}
+        hostUsername={hostUsername}
+        isHost={isHost}
+        onStartGame={handleStartGame}
+        t={t}
+      />
+    </div>
   );
 };
 

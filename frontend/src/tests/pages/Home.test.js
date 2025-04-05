@@ -1,36 +1,51 @@
-import { render, waitFor } from "@testing-library/react";
+import React from "react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import axios from "../../services/axiosConfig";
-
-import { useNavigate } from "react-router-dom";
+import apiPublic from "../../services/apiPublic";
 import Home from "../../pages/Home/Home";
 
-jest.mock("../../services/axiosConfig");
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: jest.fn(),
-}));
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key) => key }),
 }));
 
-describe("Home Component", () => {
-  const mockNavigate = jest.fn();
+jest.mock("../../services/apiPublic", () => ({
+  get: jest.fn(),
+}));
 
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockNavigate,
+}));
+
+describe("Home component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useNavigate.mockReturnValue(mockNavigate);
   });
 
-  it("redirect to login after error", async () => {
-    axios.get.mockRejectedValueOnce(new Error("Erro na API"));
-
+  test("calls /home/ endpoint on mount and displays main heading", async () => {
     render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/login"));
+    await waitFor(() => {
+      expect(apiPublic.get).toHaveBeenCalledWith("/home/");
+    });
+
+    expect(screen.getByText("Welcome to Rabbit Quiz")).toBeInTheDocument();
+  });
+
+  test("navigates when a button is clicked", async () => {
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText("Join Game"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/lobby/join/");
   });
 });

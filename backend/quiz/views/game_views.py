@@ -23,4 +23,3 @@ class GameRetrieveView(generics.RetrieveAPIView):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
     lookup_field = 'code'
-    permission_classes = [IsAuthenticated]

@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 from quiz.services.score_manager import ScoreManager
 
@@ -17,8 +16,8 @@ class GameRoomEventHandler:
             await self.handle_advance_question(data)
         elif event_type == "user_score":
             await self.handle_user_score(data)
-        elif event_type == "quiz_finished":
-            await self.handle_quiz_finished()
+        elif event_type == "finish_quiz":
+            await self.handle_finish_quiz()
 
     async def handle_advance_question(self, data):
         score_manager = ScoreManager(self.room_code)
@@ -26,6 +25,25 @@ class GameRoomEventHandler:
         await self.channel_layer.group_send(
             self.room_group_name,
             {"type": "question_advanced", "question_index": data["question_index"]}
+        )
+
+    async def handle_finish_quiz(self):
+        score_manager = ScoreManager(self.room_code)
+        if hasattr(score_manager, 'mark_quiz_finished'):
+            score_manager.mark_quiz_finished()
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {"type": "quiz_finished"}
+        )
+
+        score_manager = ScoreManager(self.room_code)
+        while not score_manager.submissions_complete():
+            await asyncio.sleep(1)
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {"type": "close_connection_message"}
         )
 
     async def handle_user_score(self, data):
@@ -37,28 +55,9 @@ class GameRoomEventHandler:
         if username:
             score_manager.update_user_score(username, score, total)
 
-        if score_manager.submissions_complete():
+        if score_manager.submissions_complete() and not self.consumer.scores_sent:
+            self.consumer.scores_sent = True
             await self.broadcast_scores()
-
-    async def handle_quiz_finished(self):
-        score_manager = ScoreManager(self.room_code)
-        score_manager.reset_on_quiz_finished()
-
-        inactivity_timeout = 5
-        interval = 1
-        time_waited = 0
-
-        while True:
-            if score_manager.submissions_complete():
-                break
-            time_waited += interval
-            if time_waited >= inactivity_timeout:
-                break
-            await asyncio.sleep(interval)
-
-        await self.broadcast_scores()
-        await self.consumer.delete_game_room()
-        await self.consumer.send(text_data=json.dumps({"type": "quiz_finished"}))
 
     async def broadcast_scores(self):
         score_manager = ScoreManager(self.room_code)

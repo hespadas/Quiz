@@ -1,47 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import useGameLogic from "../../hooks/useGameLogic";
 import Scoreboard from "./components/Scoreboard";
 import Question from "./components/Question";
-import WaitScreen from "./components/WaitScreen";
-
-const HostView = ({
-  t,
-  gameRoom,
-  currentQuestionIndex,
-  setCurrentQuestionIndex,
-  sendMessage,
-}) => {
-  return (
-    <div className="mt-6">
-      <div className="flex justify-between">
-        <button
-          onClick={() =>
-            setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
-          }
-          disabled={currentQuestionIndex === 0}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 hover:bg-blue-700"
-        >
-          {t("Anterior")}
-        </button>
-        <button
-          onClick={() =>
-            sendMessage({
-              type: "advance_question",
-              question_index: currentQuestionIndex + 1,
-            })
-          }
-          disabled={currentQuestionIndex >= gameRoom.quiz.questions.length}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 hover:bg-blue-700"
-        >
-          {currentQuestionIndex < gameRoom.quiz.questions.length - 1
-            ? t("Próxima")
-            : t("Enviar")}
-        </button>
-      </div>
-    </div>
-  );
-};
+import HostView from "./components/HostView";
 
 const Game = () => {
   const { t } = useTranslation();
@@ -59,32 +21,80 @@ const Game = () => {
     isSubmitting,
   } = useGameLogic();
 
+  const [showScoreboard, setShowScoreboard] = useState(false);
+
+  useEffect(() => {
+    if (score !== null && finalScores) {
+      setShowScoreboard(true);
+    }
+  }, [score, finalScores]);
+
   if (!gameRoom) {
-    return <p>{error || t("Carregando sala de jogo...")}</p>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-12 flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-indigo-700 font-medium">
+            {error || t("Loading game room...")}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (isSubmitting) {
-    return <WaitScreen message="Carregando resultados, por favor aguarde..." />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-12 flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-indigo-700 font-medium">
+            {t("Loading results, please wait...")}
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  if (score !== null && finalScores) {
-    return <Scoreboard finalScores={finalScores} host={gameRoom.host} />;
+  if (showScoreboard || (score !== null && finalScores)) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 py-8 px-4">
+        <div className="max-w-4xl mx-auto bg-white/90 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-4 px-6">
+            <h2 className="text-2xl font-bold text-white text-center">
+              {t("Game Results")}
+            </h2>
+            <p className="text-indigo-100 text-sm text-center">
+              {t("Quiz")} {gameRoom.quiz.title}
+            </p>
+          </div>
+          <Scoreboard finalScores={finalScores} host={gameRoom.host} />
+        </div>
+      </div>
+    );
   }
 
   const isHost = user?.role === "host" || gameRoom.host === user?.username;
 
-  if (isHost) {
-    return (
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="w-full max-w-4xl p-6 bg-white/80 backdrop-blur-sm rounded shadow-md">
-          <h2 className="text-2xl font-semibold mb-4">
-            {t("Sala de Jogo")} {gameRoom.code}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 py-8 px-4">
+      <div className="max-w-4xl mx-auto bg-white/90 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-4 px-6">
+          <h2 className="text-2xl font-bold text-white">
+            {t("Game Room")}: {gameRoom.code}
           </h2>
-          <h3 className="text-xl font-semibold mb-2">{gameRoom.quiz.title}</h3>
-          <p className="text-gray-600">
-            {t("Criado por")}: {gameRoom.host}
-          </p>
-
+          <div className="flex flex-wrap items-center justify-between">
+            <p className="text-indigo-100 text-sm">{gameRoom.quiz.title}</p>
+            <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+              {t("Host")}: {gameRoom.host}
+            </span>
+          </div>
+          {user?.username && (
+            <div className="mt-2 text-sm text-white/90">
+              {t("You're playing as")}: <strong>{user.username}</strong>
+            </div>
+          )}
+        </div>
+        <div className="p-6">
           <Question
             gameRoom={gameRoom}
             currentQuestionIndex={currentQuestionIndex}
@@ -92,32 +102,19 @@ const Game = () => {
             setSelectedOptions={setSelectedOptions}
             isHost={isHost}
           />
-
-          <HostView
-            t={t}
-            gameRoom={gameRoom}
-            currentQuestionIndex={currentQuestionIndex}
-            setCurrentQuestionIndex={setCurrentQuestionIndex}
-            sendMessage={sendMessage}
-          />
+          {isHost && (
+            <HostView
+              t={t}
+              gameRoom={gameRoom}
+              currentQuestionIndex={currentQuestionIndex}
+              setCurrentQuestionIndex={setCurrentQuestionIndex}
+              sendMessage={sendMessage}
+            />
+          )}
         </div>
       </div>
-    );
-  } else {
-    return (
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="w-full max-w-4xl p-6 bg-white/80 backdrop-blur-sm rounded shadow-md">
-          <Question
-            gameRoom={gameRoom}
-            currentQuestionIndex={currentQuestionIndex}
-            selectedOptions={selectedOptions}
-            setSelectedOptions={setSelectedOptions}
-            isHost={isHost}
-          />
-        </div>
-      </div>
-    );
-  }
+    </div>
+  );
 };
 
 export default Game;
