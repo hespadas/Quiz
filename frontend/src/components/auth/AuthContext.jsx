@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import authService from "../../services/authService";
 
-export const AuthContext = createContext();
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);

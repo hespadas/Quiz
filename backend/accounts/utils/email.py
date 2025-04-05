@@ -22,13 +22,8 @@ class EmailService:
 
             logger.info(settings.DEFAULT_FROM_EMAIL)
 
-            send_mail(
-                "Confirm Your Email",
-                f"Click the link to confirm your email: {confirmation_url}",
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
+            send_mail("Confirm Your Email", f"Click the link to confirm your email: {confirmation_url}",
+                      settings.DEFAULT_FROM_EMAIL, [user.email])
 
             logger.info(f"E-mail de confirmação enviado com sucesso para {user.email}")
 
@@ -45,13 +40,8 @@ class EmailService:
             logger.info(f"Enviando e-mail de redefinição de senha para {user.email}")
             logger.info(f"URL de redefinição: {reset_url}")
 
-            send_mail(
-                "Password Reset",
-                f"Click the link to reset your password: {reset_url}",
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
+            send_mail("Password Reset", f"Click the link to reset your password: {reset_url}",
+                      settings.DEFAULT_FROM_EMAIL, [user.email])
 
             logger.info(f"E-mail de redefinição enviado com sucesso para {user.email}")
 
