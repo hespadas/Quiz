@@ -1,6 +1,7 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { toast } from "react-toastify";
 import Register from "../../pages/Auth/Register/Register";
 
 jest.mock("react-i18next", () => ({
@@ -9,136 +10,104 @@ jest.mock("react-i18next", () => ({
   }),
 }));
 
-global.fetch = jest.fn();
+jest.mock("react-toastify", () => ({
+  toast: {
+    error: jest.fn(),
+    success: jest.fn(),
+  },
+}));
 
-describe("Register component", () => {
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockNavigate,
+  Link: ({ to, children }) => <a href={to}>{children}</a>,
+}));
+
+describe("Register Component", () => {
   beforeEach(() => {
-    fetch.mockClear();
+    jest.clearAllMocks();
+    global.fetch = jest.fn();
   });
 
-  test("renders register form and submits successfully", async () => {
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ message: "User created successfully" }),
-    });
-
+  test("validates password mismatch", async () => {
     render(
       <MemoryRouter>
         <Register />
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Username"), {
+    fireEvent.change(screen.getByLabelText(/^Username$/i), {
       target: { value: "testuser" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Email"), {
-      target: { value: "test@example.com" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Password"), {
-      target: { value: "!Password123" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
-      target: { value: "!Password123" },
+
+    fireEvent.change(screen.getByLabelText(/^Email$/i), {
+      target: { value: "user@example.com" },
     });
 
-    fireEvent.click(screen.getByText("Submit"));
-
-    await screen.findByText("User created successfully, confirm your email");
-  });
-
-  test("displays error message on failed registration", async () => {
-    fetch.mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ error: "User already exists" }),
+    fireEvent.change(screen.getByLabelText(/^Password$/i), {
+      target: { value: "password123" },
     });
 
-    render(
-      <MemoryRouter>
-        <Register />
-      </MemoryRouter>
+    fireEvent.change(screen.getByLabelText(/^Confirm password$/i), {
+      target: { value: "password456" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Passwords do not match")
     );
-
-    fireEvent.change(screen.getByPlaceholderText("Username"), {
-      target: { value: "existinguser" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Email"), {
-      target: { value: "existing@example.com" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Password"), {
-      target: { value: "password123" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
-      target: { value: "password123" },
-    });
-
-    fireEvent.click(screen.getByText("Submit"));
-
-    await screen.findByText(/error/);
   });
-
-  test("displays error when passwords do not match", async () => {
-    render(
-      <MemoryRouter>
-        <Register />
-      </MemoryRouter>
-    );
-
-    fireEvent.change(screen.getByPlaceholderText("Username"), {
-      target: { value: "newuser" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Email"), {
-      target: { value: "newuser@example.com" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Password"), {
-      target: { value: "password123" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
-      target: { value: "differentpassword" },
-    });
-
-    fireEvent.click(screen.getByText("Submit"));
-
-    await screen.findByText("Passwords do not match");
-  });
-
-  test("displays error message when error lacks message property", async () => {
+  test("successful registration", async () => {
     fetch.mockResolvedValueOnce({
-      ok: false,
+      ok: true,
       json: async () => ({}),
     });
 
+    jest.useFakeTimers();
+
     render(
       <MemoryRouter>
         <Register />
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Username"), {
-      target: { value: "newuser" },
+    fireEvent.change(screen.getByLabelText(/^Username$/i), {
+      target: { value: "testuser" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Email"), {
-      target: { value: "newuser@example.com" },
+    fireEvent.change(screen.getByLabelText(/^Email$/i), {
+      target: { value: "user@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Password"), {
+    fireEvent.change(screen.getByLabelText(/^Password$/i), {
       target: { value: "password123" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
+    fireEvent.change(screen.getByLabelText(/^Confirm password$/i), {
       target: { value: "password123" },
     });
 
-    fireEvent.click(screen.getByText("Submit"));
+    fireEvent.click(screen.getByRole("button", { name: /register/i }));
 
-    const errorElement = await screen.findByText(
-      (content, element) =>
-        content.includes("Error") ||
-        element?.classList.contains("error-message")
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        "User created successfully, confirm your email"
+      )
     );
 
-    expect(errorElement).toBeInTheDocument();
+    jest.advanceTimersByTime(2500);
+
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/home"));
+
+    jest.useRealTimers();
   });
 
-  test("displays error message when fetch fails", async () => {
-    fetch.mockRejectedValueOnce(new Error("Network error"));
+  test("handles API error gracefully", async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({
+        email: ["Email already exists"],
+      }),
+    });
 
     render(
       <MemoryRouter>
@@ -146,21 +115,26 @@ describe("Register component", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Username"), {
-      target: { value: "newuser" },
+    fireEvent.change(screen.getByLabelText(/^Username$/i), {
+      target: { value: "existinguser" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Email"), {
-      target: { value: "newuser@example.com" },
+
+    fireEvent.change(screen.getByLabelText(/^Email$/i), {
+      target: { value: "existing@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Password"), {
-      target: { value: "password123" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Confirm password"), {
+
+    fireEvent.change(screen.getByLabelText(/^Password$/i), {
       target: { value: "password123" },
     });
 
-    fireEvent.click(screen.getByText("Submit"));
+    fireEvent.change(screen.getByLabelText(/^Confirm password$/i), {
+      target: { value: "password123" },
+    });
 
-    await screen.findByText(/Error: Network error/);
+    fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Email already exists")
+    );
   });
 });

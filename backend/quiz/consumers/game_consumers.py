@@ -75,7 +75,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         }))
 
     async def close_connection_message(self, event):
-
         await self.send(text_data=json.dumps({
             "type": "close_connection"
         }))

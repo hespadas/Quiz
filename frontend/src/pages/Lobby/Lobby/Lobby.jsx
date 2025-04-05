@@ -72,18 +72,26 @@ const Lobby = () => {
   };
 
   if (!currentUsername) {
-    return <NameInputComponent onSubmit={handleNameSubmit} />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden">
+          <NameInputComponent onSubmit={handleNameSubmit} />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <LobbyPresentation
-      gameInfo={gameInfo}
-      connectedUsers={connectedUsers}
-      hostUsername={hostUsername}
-      isHost={isHost}
-      onStartGame={handleStartGame}
-      t={t}
-    />
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 py-8 px-4 flex items-center justify-center">
+      <LobbyPresentation
+        gameInfo={gameInfo}
+        connectedUsers={connectedUsers}
+        hostUsername={hostUsername}
+        isHost={isHost}
+        onStartGame={handleStartGame}
+        t={t}
+      />
+    </div>
   );
 };
 
