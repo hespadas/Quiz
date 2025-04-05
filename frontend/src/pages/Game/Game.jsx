@@ -88,8 +88,12 @@ const Game = () => {
               {t("Host")}: {gameRoom.host}
             </span>
           </div>
+          {user?.username && (
+            <div className="mt-2 text-sm text-white/90">
+              {t("You're playing as")}: <strong>{user.username}</strong>
+            </div>
+          )}
         </div>
-
         <div className="p-6">
           <Question
             gameRoom={gameRoom}
@@ -98,7 +102,6 @@ const Game = () => {
             setSelectedOptions={setSelectedOptions}
             isHost={isHost}
           />
-
           {isHost && (
             <HostView
               t={t}

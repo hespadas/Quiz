@@ -55,7 +55,7 @@ const useGameLogic = () => {
     [triggerSubmitQuiz, readyToClose]
   );
 
-  const { sendMessage, socket, closeSocket } = useGameWebSocket(
+  const { sendMessage, closeSocket } = useGameWebSocket(
     gameRoom,
     code,
     username,
@@ -113,7 +113,7 @@ const useGameLogic = () => {
     finalScores,
     submitQuiz,
     sendMessage,
-    user,
+    user: { username, ...user },
     isSubmitting,
     quizFinished,
   };
