@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import authService from "../../../services/authService";
 
-const CreateLobby = () => {
+const LobbyCreate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [availableQuizzes, setAvailableQuizzes] = useState([]);
@@ -322,4 +322,4 @@ const CreateLobby = () => {
   );
 };
 
-export default CreateLobby;
+export default LobbyCreate;
