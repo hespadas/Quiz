@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import axios from "../../../services/axiosConfig";
-import QuizQuestions from "../../../components/quiz/QuizQuestion";
+import axios from "../../services/axiosConfig";
+import QuizQuestions from "../../components/quiz/FormQuestions";
 
-const EditQuestions = () => {
+const FormQuestions = () => {
   const { id } = useParams();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -158,4 +158,4 @@ const EditQuestions = () => {
   );
 };
 
-export default EditQuestions;
+export default FormQuestions;

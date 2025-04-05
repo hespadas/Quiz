@@ -13,7 +13,7 @@ import Creation from "./pages/Quiz/QuizCreate/QuizCreation";
 import List from "./pages/Quiz/QuizList/QuizList";
 import Detail from "./pages/Quiz/QuizDetail/QuizDetail";
 import Edit from "./pages/Quiz/QuizEdit/QuizEdit";
-import EditQuestions from "./pages/Quiz/QuizEdit/EditQuestions";
+import FormQuestions from "./components/quiz/FormQuestions";
 import JoinLobby from "./pages/Lobby/LobbyJoin/JoinLobby";
 import Lobby from "./pages/Lobby/Lobby/Lobby";
 import CreateLobby from "./pages/Lobby/LobbyCreate/CreateLobby";
@@ -36,7 +36,7 @@ function App() {
           <Route path="/quizzes" element={<List />} />
           <Route path="/quizzes/:id" element={<Detail />} />
           <Route path="/quiz/edit/:id/" element={<Edit />} />
-          <Route path="/quiz/:id/edit-questions/" element={<EditQuestions />} />
+          <Route path="/quiz/:id/edit-questions/" element={<FormQuestions />} />
           <Route path="/game_rooms/:code/" element={<GameRoom />} />
           <Route path="/lobby/join" element={<JoinLobby />} />
           <Route path="/lobby/:code" element={<Lobby />} />
