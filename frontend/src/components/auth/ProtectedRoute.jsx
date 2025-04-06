@@ -4,18 +4,27 @@ import authService from "../../services/authService";
 import { AuthContext } from "./AuthContext";
 
 const ProtectedRoute = () => {
-  const { isAuth, setIsAuth, user } = useContext(AuthContext);
+  const { isAuth, setIsAuth } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(true);
+  const [checkComplete, setCheckComplete] = useState(false);
 
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        await authService.checkAuth();
-        setIsAuth(true);
+        const tokenExp = localStorage.getItem("access_token_exp");
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        if (tokenExp && parseInt(tokenExp, 10) > currentTime) {
+          await authService.checkAuth();
+          setIsAuth(true);
+        } else {
+          setIsAuth(false);
+        }
       } catch (error) {
         setIsAuth(false);
       } finally {
         setIsLoading(false);
+        setCheckComplete(true);
       }
     };
 
@@ -23,10 +32,17 @@ const ProtectedRoute = () => {
       checkAuthentication();
     } else {
       setIsLoading(false);
+      setCheckComplete(true);
     }
   }, [isAuth, setIsAuth]);
 
-  return isAuth ? <Outlet /> : <Navigate to="/login" />;
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    checkComplete && (isAuth ? <Outlet /> : <Navigate to="/login" replace />)
+  );
 };
 
 export default ProtectedRoute;
