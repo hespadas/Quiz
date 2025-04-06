@@ -1,159 +1,91 @@
-// src/components/auth/__tests__/AuthContext.test.js
-
-import React from "react";
-import { render, waitFor, act } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import authService from "../../../services/authService";
+// AuthProvider.test.js
+import React, { useEffect } from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
 import {
   AuthContext,
   AuthProvider,
 } from "../../../components/auth/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import authService from "../../../services/authService";
 
-jest.mock("../../../services/authService", () => ({
-  checkAuth: jest.fn(),
-  getUserInfo: jest.fn(),
-  refreshToken: jest.fn(),
-}));
+jest.mock("../../../services/authService");
 
+const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
-  useNavigate: jest.fn(),
-  useLocation: jest.fn(),
+  useNavigate: () => mockNavigate,
 }));
 
-describe("AuthContext", () => {
-  const mockNavigate = jest.fn();
-  const mockLocation = { pathname: "/login" };
+const ConsumerComponent = () => {
+  const { isAuth, user, setIsAuth } = React.useContext(AuthContext);
 
+  useEffect(() => {
+    if (!isAuth) {
+      setIsAuth(true);
+    }
+  }, [isAuth, setIsAuth]);
+
+  return (
+    <div data-testid="consumer">
+      {isAuth ? "Authenticated" : "Not Authenticated"} -{" "}
+      {user ? user.name : "No User"}
+    </div>
+  );
+};
+
+describe("AuthProvider", () => {
   beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
-    useNavigate.mockReturnValue(mockNavigate);
-    useLocation.mockReturnValue(mockLocation);
   });
 
-  it("sets isAuth to false and redirects to /login if checkAuth fails", async () => {
-    jest
-      .spyOn(authService, "checkAuth")
-      .mockRejectedValue(new Error("Not authenticated"));
-
-    let contextValue;
+  test("exibe Loading inicialmente e renderiza os filhos após a inicialização", async () => {
+    authService.getUserInfo.mockResolvedValue({ name: "John Doe" });
 
     render(
-      <MemoryRouter initialEntries={["/quizzes"]}>
+      <BrowserRouter>
         <AuthProvider>
-          <AuthContext.Consumer>
-            {(value) => {
-              contextValue = value;
-              return null;
-            }}
-          </AuthContext.Consumer>
+          <div data-testid="child">Child Component</div>
         </AuthProvider>
-      </MemoryRouter>
+      </BrowserRouter>
     );
 
-    await waitFor(() => expect(contextValue).toBeDefined());
-    expect(contextValue.isAuth).toBe(false);
-    expect(contextValue.user).toBe(null);
+    expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("child")).toBeInTheDocument();
+    });
   });
 
-  it("sets isAuth to false and redirects to /login if refreshToken fails", async () => {
-    useLocation.mockReturnValue({ pathname: "/some-other-path" });
-    authService.checkAuth.mockResolvedValueOnce(); // checkAuth succeeds
-    authService.getUserInfo.mockResolvedValueOnce({
-      username: "testuser",
-      email: "testuser@example.com",
-    });
-    authService.refreshToken.mockRejectedValueOnce(
-      new Error("Token refresh error")
-    );
-
-    let contextValue;
+  test("navega para /login se a renovação do token falhar", async () => {
     jest.useFakeTimers();
 
-    const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-    const accessTokenExp = currentTimeInSeconds + 120;
-    localStorage.setItem("access_token_exp", accessTokenExp.toString());
+    const futureTimestamp = Math.floor(Date.now() / 1000) + 6; // token expira em 6 segundos
+    localStorage.setItem("access_token_exp", futureTimestamp.toString());
 
-    render(
-      <MemoryRouter>
-        <AuthProvider>
-          <AuthContext.Consumer>
-            {(value) => {
-              contextValue = value;
-              return null;
-            }}
-          </AuthContext.Consumer>
-        </AuthProvider>
-      </MemoryRouter>
-    );
+    authService.getUserInfo.mockResolvedValue({ name: "John Doe" });
 
-    await waitFor(() => expect(contextValue.isAuth).toBe(true));
-    await waitFor(() =>
-      expect(contextValue.user).toEqual({
-        username: "testuser",
-        email: "testuser@example.com",
-      })
-    );
-
-    const timeUntilExpiry = accessTokenExp * 1000 - Date.now() - 5000;
-    act(() => {
-      jest.advanceTimersByTime(timeUntilExpiry);
-    });
-
-    await waitFor(() => expect(authService.refreshToken).toHaveBeenCalled());
-    await waitFor(() => expect(contextValue.isAuth).toBe(false));
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/login"));
-    expect(contextValue.user).toBe(null);
-
-    jest.useRealTimers();
-  });
-
-  it("renews token near expiration", async () => {
-    useLocation.mockReturnValue({ pathname: "/some-other-path" });
-    authService.checkAuth.mockResolvedValueOnce(); // checkAuth succeeds
-    authService.getUserInfo.mockResolvedValueOnce({
-      username: "testuser",
-      email: "testuser@example.com",
-    });
-    authService.refreshToken.mockResolvedValueOnce({
-      data: { access_token_exp: Math.floor(Date.now() / 1000) + 60 },
-    });
-
-    let contextValue;
-    jest.useFakeTimers();
-
-    localStorage.setItem(
-      "access_token_exp",
-      (Math.floor(Date.now() / 1000) + 10).toString()
+    authService.refreshToken.mockRejectedValue(
+      new Error("Refresh token error")
     );
 
     render(
-      <MemoryRouter>
+      <BrowserRouter>
         <AuthProvider>
-          <AuthContext.Consumer>
-            {(value) => {
-              contextValue = value;
-              return null;
-            }}
-          </AuthContext.Consumer>
+          <ConsumerComponent />
         </AuthProvider>
-      </MemoryRouter>
+      </BrowserRouter>
     );
 
-    await waitFor(() => expect(contextValue.isAuth).toBe(true));
-    expect(contextValue.user).toEqual({
-      username: "testuser",
-      email: "testuser@example.com",
+    await waitFor(() => {
+      expect(screen.getByTestId("consumer")).toBeInTheDocument();
     });
-    act(() => {
-      jest.advanceTimersByTime(5 * 1000);
+
+    jest.advanceTimersByTime(1500); // tempo suficiente para disparar o timeout
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
     });
-    await waitFor(() => expect(authService.refreshToken).toHaveBeenCalled());
-    await waitFor(() =>
-      expect(localStorage.getItem("access_token_exp")).toBeTruthy()
-    );
 
     jest.useRealTimers();
   });

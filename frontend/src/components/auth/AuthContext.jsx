@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
 
 export const AuthContext = createContext(null);
@@ -8,46 +8,28 @@ export const AuthProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [user, setUser] = useState(null);
   const [tokenExpiry, setTokenExpiry] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
-    (async () => {
-      const publicPaths = [
-        "/login",
-        "/register",
-        "/confirm-email",
-        "/forgot-password",
-        "/",
-        "/lobby/join/",
-      ];
-
-      const isResetPassword = location.pathname.startsWith("/reset-password");
-      const isPublic = publicPaths.some((path) =>
-        location.pathname.startsWith(path)
-      );
-
+    const initializeAuth = async () => {
       try {
-        await authService.checkAuth();
-        setIsAuth(true);
-
         const response = await authService.getUserInfo();
         setUser(response);
-
         const accessTokenExp = localStorage.getItem("access_token_exp");
         if (accessTokenExp) {
-          setTokenExpiry(parseInt(accessTokenExp) * 1000);
+          setTokenExpiry(parseInt(accessTokenExp, 10) * 1000);
         }
       } catch (error) {
         setIsAuth(false);
         setUser(null);
-
-        if (!isPublic && !isResetPassword) {
-          navigate("/login");
-        }
+      } finally {
+        setLoading(false);
       }
-    })();
-  }, [location.pathname, navigate]);
+    };
+
+    initializeAuth();
+  }, []);
 
   useEffect(() => {
     const renewTokenIfNecessary = async () => {
@@ -74,6 +56,10 @@ export const AuthProvider = ({ children }) => {
       return () => clearTimeout(timeoutId);
     }
   }, [isAuth, tokenExpiry, navigate]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider value={{ isAuth, user, setIsAuth }}>
