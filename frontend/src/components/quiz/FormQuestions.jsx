@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import axios from "../../services/axiosConfig";
-import QuizQuestions from "../../components/quiz/FormQuestions";
+import QuizQuestions from "./QuizQuestions";
 
 const FormQuestions = () => {
   const { id } = useParams();
