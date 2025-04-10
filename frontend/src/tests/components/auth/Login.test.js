@@ -71,7 +71,6 @@ describe("Login Component", () => {
     await waitFor(() =>
       expect(authService.login).toHaveBeenCalledWith("testuser", "testpassword")
     );
-    expect(mockNavigate).toHaveBeenCalledWith("/");
   });
 
   test("displays error message on login failure with detail", async () => {

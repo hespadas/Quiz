@@ -1,3 +1,4 @@
+// src/components/auth/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
@@ -10,23 +11,25 @@ export const AuthProvider = ({ children }) => {
   const [tokenExpiry, setTokenExpiry] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const response = await authService.getUserInfo();
-        setUser(response);
-        setIsAuth(true);
-        const accessTokenExp = localStorage.getItem("access_token_exp");
-        if (accessTokenExp) {
-          setTokenExpiry(parseInt(accessTokenExp, 10) * 1000);
-        }
-      } catch (error) {
-        setIsAuth(false);
-        setUser(null);
+  const loadUserInfo = async () => {
+    try {
+      const response = await authService.getUserInfo();
+      setUser(response);
+      setIsAuth(true);
+      const accessTokenExp = localStorage.getItem("access_token_exp");
+      if (accessTokenExp) {
+        setTokenExpiry(parseInt(accessTokenExp, 10) * 1000);
       }
-    };
+      return true;
+    } catch (error) {
+      setIsAuth(false);
+      setUser(null);
+      return false;
+    }
+  };
 
-    initializeAuth();
+  useEffect(() => {
+    loadUserInfo();
   }, []);
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export const AuthProvider = ({ children }) => {
   }, [isAuth, tokenExpiry, navigate]);
 
   return (
-    <AuthContext.Provider value={{ isAuth, user, setIsAuth }}>
+    <AuthContext.Provider value={{ isAuth, user, setIsAuth, loadUserInfo }}>
       {children}
     </AuthContext.Provider>
   );
