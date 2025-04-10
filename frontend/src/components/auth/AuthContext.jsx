@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await authService.getUserInfo();
         setUser(response);
+        setIsAuth(true);
         const accessTokenExp = localStorage.getItem("access_token_exp");
         if (accessTokenExp) {
           setTokenExpiry(parseInt(accessTokenExp, 10) * 1000);
