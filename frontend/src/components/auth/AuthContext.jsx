@@ -8,7 +8,6 @@ export const AuthProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [user, setUser] = useState(null);
   const [tokenExpiry, setTokenExpiry] = useState(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,8 +23,6 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         setIsAuth(false);
         setUser(null);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -57,10 +54,6 @@ export const AuthProvider = ({ children }) => {
       return () => clearTimeout(timeoutId);
     }
   }, [isAuth, tokenExpiry, navigate]);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <AuthContext.Provider value={{ isAuth, user, setIsAuth }}>
