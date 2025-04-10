@@ -7,7 +7,26 @@ const QuizQuestions = ({ questions, setQuestions }) => {
 
   const handleQuestionChange = (index, field, value) => {
     setQuestions((prevQuestions) =>
-      prevQuestions.map((q, i) => (i === index ? { ...q, [field]: value } : q))
+      prevQuestions.map((q, i) => {
+        if (i === index) {
+          let updatedQuestion = { ...q, [field]: value };
+
+          if (field === "question_type" && value === "TF") {
+            updatedQuestion.options = [
+              { text: "True", is_correct: true },
+              { text: "False", is_correct: false },
+            ];
+          } else if (field === "question_type" && value === "MC") {
+            updatedQuestion.options = [
+              { text: "", is_correct: false },
+              { text: "", is_correct: false },
+            ];
+          }
+
+          return updatedQuestion;
+        }
+        return q;
+      })
     );
   };
 
@@ -143,12 +162,23 @@ const QuizQuestions = ({ questions, setQuestions }) => {
               <div key={oIndex} className="flex items-center gap-2">
                 <input
                   type="text"
-                  value={option.text}
+                  value={
+                    question.question_type === "TF"
+                      ? option.text === "True"
+                        ? t("True")
+                        : t("False")
+                      : option.text
+                  }
                   onChange={(e) =>
                     handleOptionChange(qIndex, oIndex, "text", e.target.value)
                   }
                   required
-                  className="flex-1 border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={question.question_type === "TF"}
+                  className={`flex-1 border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    question.question_type === "TF"
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : ""
+                  }`}
                   placeholder={`${t("Option")} ${oIndex + 1}`}
                   aria-label={`${t("Option")} ${oIndex + 1}`}
                 />
@@ -164,16 +194,17 @@ const QuizQuestions = ({ questions, setQuestions }) => {
                   />
                   {t("Correct")}
                 </label>
-                {question.options.length > 2 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveOption(qIndex, oIndex)}
-                    className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 rounded p-1"
-                    aria-label={`${t("Remove")} ${t("Option")} ${oIndex + 1}`}
-                  >
-                    {t("Remove")}
-                  </button>
-                )}
+                {question.options.length > 2 &&
+                  question.question_type !== "TF" && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveOption(qIndex, oIndex)}
+                      className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 rounded p-1"
+                      aria-label={`${t("Remove")} ${t("Option")} ${oIndex + 1}`}
+                    >
+                      {t("Remove")}
+                    </button>
+                  )}
               </div>
             ))}
           </div>
