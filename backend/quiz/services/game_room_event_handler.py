@@ -36,11 +36,6 @@ class GameRoomEventHandler:
             self.room_group_name,
             {"type": "quiz_finished"}
         )
-
-        score_manager = ScoreManager(self.room_code)
-        while not score_manager.submissions_complete():
-            await asyncio.sleep(1)
-
         await self.channel_layer.group_send(
             self.room_group_name,
             {"type": "close_connection_message"}
