@@ -3,7 +3,6 @@ import axios from "../../../services/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import authService from "../../../services/authService";
 
 const LobbyCreate = () => {
   const { t } = useTranslation();
@@ -14,25 +13,7 @@ const LobbyCreate = () => {
   const [sortOption, setSortOption] = useState("newest");
   const [loading, setLoading] = useState(true);
 
-  const [authChecked, setAuthChecked] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   useEffect(() => {
-    const checkUserAuth = async () => {
-      try {
-        await authService.checkAuth();
-        setIsAuthenticated(true);
-      } catch (error) {
-        navigate("/login");
-      } finally {
-        setAuthChecked(true);
-      }
-    };
-    checkUserAuth();
-  }, [navigate]);
-
-  useEffect(() => {
-    if (!authChecked || !isAuthenticated) return;
     const fetchQuizzes = async () => {
       setLoading(true);
       try {
@@ -48,7 +29,7 @@ const LobbyCreate = () => {
       }
     };
     void fetchQuizzes();
-  }, [t, authChecked, isAuthenticated]);
+  }, [t]);
 
   const handleCreateLobby = async (quizId) => {
     try {
@@ -131,19 +112,6 @@ const LobbyCreate = () => {
         return 0;
       });
   };
-
-  if (!authChecked) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-12 flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-indigo-700 font-medium">
-            {t("Checking authorization...")}
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 py-8 px-4">

@@ -19,25 +19,25 @@ export const Home = () => {
       label: t("Join Game"),
       color: "bg-gradient-to-r from-pink-500 to-red-500",
       path: "/lobby/join/",
-      icon: "M13 10V3L4 14h7v7l9-11h-7z", // Lightning bolt
+      icon: "M13 10V3L4 14h7v7l9-11h-7z",
     },
     {
       label: t("Create Game"),
       color: "bg-gradient-to-r from-amber-400 to-yellow-500",
       path: "/lobby/create",
-      icon: "M12 6v6m0 0v6m0-6h6m-6 0H6", // Plus
+      icon: "M12 6v6m0 0v6m0-6h6m-6 0H6",
     },
     {
       label: t("Create Quiz"),
       color: "bg-gradient-to-r from-emerald-400 to-green-500",
       path: "/create-quiz",
-      icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z", // Pencil
+      icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
     },
     {
       label: t("Edit Quiz"),
       color: "bg-gradient-to-r from-blue-400 to-indigo-500",
       path: "/quizzes",
-      icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z", // Pencil
+      icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
     },
   ];
 

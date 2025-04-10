@@ -12,16 +12,16 @@ class ScoreManager:
     def advance_question(self):
         user_count = cache.get(self.user_count_key, 0)
         cache.set(self.expected_submissions_key, user_count)
-        cache.set(self.submitted_users_key, set())
+        cache.set(self.submitted_users_key, [])
 
     def update_user_score(self, username, score, total):
         scores = cache.get(self.scores_key, {})
         scores[username] = {"score": score, "total": total}
         cache.set(self.scores_key, scores)
 
-        submitted_users = cache.get(self.submitted_users_key, set())
+        submitted_users = cache.get(self.submitted_users_key, [])
         if username not in submitted_users:
-            submitted_users.add(username)
+            submitted_users.append(username)
             cache.set(self.submitted_users_key, submitted_users)
             cache.decr(self.expected_submissions_key)
 
@@ -38,4 +38,4 @@ class ScoreManager:
     def reset_on_quiz_finished(self):
         user_count = cache.get(self.user_count_key, 0)
         cache.set(self.expected_submissions_key, user_count)
-        cache.set(self.submitted_users_key, set())
+        cache.set(self.submitted_users_key, [])
