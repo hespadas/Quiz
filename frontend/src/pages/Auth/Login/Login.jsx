@@ -10,7 +10,7 @@ export const Login = () => {
   const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const { isAuth, setIsAuth } = useContext(AuthContext);
+  const { isAuth, loadUserInfo } = useContext(AuthContext);
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -26,8 +26,10 @@ export const Login = () => {
 
     try {
       await authService.login(username, password);
-      setIsAuth(true);
-      navigate("/");
+      const success = await loadUserInfo();
+      if (success) {
+        navigate("/");
+      }
     } catch (e) {
       if (e.response && e.response.data && e.response.data.detail) {
         toast.error(e.response.data.detail);
@@ -38,7 +40,6 @@ export const Login = () => {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden">

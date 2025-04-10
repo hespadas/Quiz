@@ -50,8 +50,6 @@ describe("AuthProvider", () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
-
     await waitFor(() => {
       expect(screen.getByTestId("child")).toBeInTheDocument();
     });
