@@ -24,8 +24,11 @@ const Question = ({
     }));
   };
 
+  const isOptionSelected = (optionId) =>
+    selectedOptions[currentQuestion.id] === optionId;
+
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
         <div
           className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
@@ -33,7 +36,7 @@ const Question = ({
         ></div>
       </div>
 
-      <div className="bg-gray-50 rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+      <div className="bg-gray-50 rounded-xl p-6 shadow-sm border border-gray-100 mb-6 transition-all animate-slide-up">
         <div className="flex justify-between items-center mb-4">
           <span className="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">
             {t("Question")} {currentQuestionIndex + 1}/{questions.length}
@@ -46,15 +49,14 @@ const Question = ({
           )}
         </div>
 
-        <h3 className="text-xl font-bold text-gray-800 mb-6">
+        <h3 className="text-2xl font-semibold text-gray-900 mb-6 leading-relaxed">
           {currentQuestion.text}
         </h3>
 
-        <div className="space-y-3 mt-4">
+        <div className="grid gap-4 mt-4 sm:grid-cols-1 md:grid-cols-2">
           {currentQuestion.options &&
             currentQuestion.options.map((option) => {
-              const isSelected =
-                selectedOptions[currentQuestion.id] === option.id;
+              const isSelected = isOptionSelected(option.id);
 
               return (
                 <button
@@ -63,11 +65,13 @@ const Question = ({
                     !isHost ? () => handleOptionSelect(option.id) : undefined
                   }
                   disabled={isHost}
-                  className={`w-full p-4 rounded-lg border text-left transition-all duration-200
+                  aria-pressed={isSelected}
+                  role="button"
+                  className={`w-full p-4 rounded-lg border text-left transition-all duration-200 shadow-sm
                     ${
                       isSelected
                         ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-transparent"
-                        : "bg-white hover:bg-gray-50 border-gray-200 hover:border-indigo-300"
+                        : "bg-white hover:bg-gray-50 border-gray-200 hover:border-indigo-400"
                     }
                     ${isHost ? "cursor-default" : "cursor-pointer"}
                   `}

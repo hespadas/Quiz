@@ -1,5 +1,4 @@
 // src/components/quiz/QuizBasicForm.js
-
 import React, { useState, useEffect } from "react";
 import axios from "../../services/axiosConfig";
 import { useNavigate, Link } from "react-router-dom";
@@ -83,37 +82,43 @@ const QuizBasicForm = ({ initialData = null, isEdit = false }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white/80 backdrop-blur-sm shadow-md rounded items-center">
-      <h2 className="text-2xl font-semibold mb-4">
+    <div className="max-w-4xl mx-auto p-6 bg-white/90 backdrop-blur-md shadow-lg rounded-xl">
+      <h2 className="text-3xl font-bold mb-6 text-indigo-700">
         {isEdit ? t("Edit Quiz") : t("Create New Quiz")}
       </h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-6">
-          <label className="block mb-2 font-medium">{t("Title")}</label>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            {t("Title")}
+          </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full border border-gray-300 p-2 rounded"
+            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
-        <div className="mb-6">
-          <label className="block mb-2 font-medium">{t("Description")}</label>
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            {t("Description")}
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded"
+            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500"
           ></textarea>
         </div>
 
-        <div className="mb-6">
-          <label className="block mb-2 font-medium">{t("Category")}</label>
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            {t("Category")}
+          </label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded"
+            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">{t("Select Category")}</option>
             {availableCategories.map((cat) => (
@@ -124,23 +129,25 @@ const QuizBasicForm = ({ initialData = null, isEdit = false }) => {
           </select>
         </div>
 
-        <div className="mb-6">
-          <label className="block mb-2 font-medium">{t("Image")}</label>
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            {t("Image")}
+          </label>
           <input type="file" accept="image/*" onChange={handleImageChange} />
           {imagePreview && (
             <img
               src={imagePreview}
               alt="Preview"
-              className="mt-2 h-48 object-cover"
+              className="mt-4 h-48 object-cover rounded-lg border border-gray-200"
             />
           )}
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           {isEdit && initialData && (
             <Link
               to={`/quiz/${initialData.id}/edit-questions`}
-              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              className="px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
             >
               {t("Edit Questions")}
             </Link>
@@ -149,9 +156,12 @@ const QuizBasicForm = ({ initialData = null, isEdit = false }) => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ${
-              isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`px-6 py-3 text-white rounded-lg font-semibold transition shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+              ${
+                isSubmitting
+                  ? "bg-indigo-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
           >
             {isEdit ? t("Update Quiz") : t("Create Quiz")}
           </button>

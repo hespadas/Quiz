@@ -100,123 +100,121 @@ const QuizQuestions = ({ questions, setQuestions }) => {
       <h3 className="text-xl font-semibold mb-4 text-indigo-800">
         {t("Questions")}
       </h3>
-      {questions.map((question, qIndex) => (
-        <div
-          key={qIndex}
-          className="mb-6 p-5 border border-gray-200 rounded-lg shadow-sm bg-white/50 hover:bg-white/80 transition-all duration-200"
-        >
-          <div className="flex justify-between items-center mb-3">
-            <h4 className="font-medium text-lg text-indigo-700">{`${t(
-              "Question"
-            )} ${qIndex + 1}`}</h4>
-            <button
-              type="button"
-              onClick={() => handleRemoveQuestion(qIndex)}
-              className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 rounded-md px-2 py-1 transition-colors duration-200"
-              aria-label={`${t("Remove Question")} ${qIndex + 1}`}
-            >
-              {t("Remove Question")}
-            </button>
-          </div>
-
-          <label
-            htmlFor={`question-text-${qIndex}`}
-            className="block mb-1 font-medium text-gray-700"
+      {questions.map((question, qIndex) => {
+        const isTF = question.question_type === "TF";
+        return (
+          <div
+            key={qIndex}
+            className="mb-4 border border-gray-200 rounded-lg overflow-hidden"
           >
-            {t("Question Text")}
-          </label>
-          <input
-            id={`question-text-${qIndex}`}
-            type="text"
-            value={question.text}
-            onChange={(e) =>
-              handleQuestionChange(qIndex, "text", e.target.value)
-            }
-            required
-            className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-          />
+            <details className="group">
+              <summary className="bg-indigo-100 px-4 py-2 cursor-pointer font-medium text-indigo-800 group-open:bg-indigo-200 transition-colors duration-200">
+                {t("Question")} {qIndex + 1}:{" "}
+                {question.text || t("Untitled Question")}
+              </summary>
 
-          <label
-            htmlFor={`question-type-${qIndex}`}
-            className="block mb-1 font-medium text-gray-700 mt-3"
-          >
-            {t("Question Type")}
-          </label>
-          <select
-            id={`question-type-${qIndex}`}
-            value={question.question_type}
-            onChange={(e) =>
-              handleQuestionChange(qIndex, "question_type", e.target.value)
-            }
-            className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-          >
-            <option value="MC">{t("Multiple Choice")}</option>
-            <option value="TF">{t("True/False")}</option>
-          </select>
-
-          <h5 className="font-medium mt-4 mb-2 text-indigo-700">
-            {t("Options")}
-          </h5>
-          <div className="space-y-3">
-            {question.options.map((option, oIndex) => (
-              <div key={oIndex} className="flex items-center gap-2">
+              <div className="p-4 bg-white space-y-4">
+                <label className="block font-medium text-gray-700">
+                  {t("Question Text")}
+                </label>
                 <input
                   type="text"
-                  value={
-                    question.question_type === "TF"
-                      ? option.text === "True"
-                        ? t("True")
-                        : t("False")
-                      : option.text
-                  }
+                  value={question.text}
                   onChange={(e) =>
-                    handleOptionChange(qIndex, oIndex, "text", e.target.value)
+                    handleQuestionChange(qIndex, "text", e.target.value)
                   }
                   required
-                  disabled={question.question_type === "TF"}
-                  className={`flex-1 border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    question.question_type === "TF"
-                      ? "bg-gray-100 cursor-not-allowed"
-                      : ""
-                  }`}
-                  placeholder={`${t("Option")} ${oIndex + 1}`}
-                  aria-label={`${t("Option")} ${oIndex + 1}`}
+                  className="w-full border border-gray-300 p-2 rounded-md"
                 />
-                <label className="flex items-center whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    checked={option.is_correct}
-                    onChange={() =>
-                      handleOptionChange(qIndex, oIndex, "is_correct", true)
-                    }
-                    className="mr-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    aria-label={`${t("Correct answer")}`}
-                  />
-                  {t("Correct")}
+
+                <label className="block font-medium text-gray-700">
+                  {t("Question Type")}
                 </label>
-                {question.options.length > 2 &&
-                  question.question_type !== "TF" && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveOption(qIndex, oIndex)}
-                      className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 rounded p-1"
-                      aria-label={`${t("Remove")} ${t("Option")} ${oIndex + 1}`}
-                    >
-                      {t("Remove")}
-                    </button>
-                  )}
+                <select
+                  value={question.question_type}
+                  onChange={(e) =>
+                    handleQuestionChange(
+                      qIndex,
+                      "question_type",
+                      e.target.value
+                    )
+                  }
+                  className="w-full border border-gray-300 p-2 rounded-md"
+                >
+                  <option value="MC">{t("Multiple Choice")}</option>
+                  <option value="TF">{t("True/False")}</option>
+                </select>
+
+                <h5 className="text-indigo-700 font-medium mt-2">
+                  {t("Options")}
+                </h5>
+
+                {question.options.map((option, oIndex) => (
+                  <div key={oIndex} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={isTF ? t(option.text) : option.text}
+                      onChange={(e) =>
+                        handleOptionChange(
+                          qIndex,
+                          oIndex,
+                          "text",
+                          e.target.value
+                        )
+                      }
+                      disabled={isTF}
+                      required
+                      className={`flex-1 border border-gray-300 p-2 rounded-md ${
+                        isTF ? "bg-gray-100 cursor-not-allowed" : ""
+                      }`}
+                    />
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={option.is_correct}
+                        onChange={() =>
+                          handleOptionChange(qIndex, oIndex, "is_correct", true)
+                        }
+                        className="mr-1"
+                      />
+                      {t("Correct")}
+                    </label>
+                    {!isTF && question.options.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveOption(qIndex, oIndex)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        {t("Remove")}
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {!isTF && (
+                  <button
+                    type="button"
+                    onClick={() => handleAddOption(qIndex)}
+                    className="mt-2 text-sm text-indigo-700 hover:underline"
+                  >
+                    {t("Add Option")}
+                  </button>
+                )}
+
+                <div className="flex justify-end mt-4">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveQuestion(qIndex)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    {t("Remove Question")}
+                  </button>
+                </div>
               </div>
-            ))}
+            </details>
           </div>
-          <button
-            type="button"
-            onClick={() => handleAddOption(qIndex)}
-            className="mt-3 px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200"
-          >
-            {t("Add Option")}
-          </button>
-        </div>
-      ))}
+        );
+      })}
       <button
         type="button"
         onClick={handleAddQuestion}
