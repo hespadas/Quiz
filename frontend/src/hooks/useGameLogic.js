@@ -4,6 +4,7 @@ import useGameRoom from "./useGameRoom";
 import useGameWebSocket from "./useGameWebSocket";
 import useSubmitQuiz from "./useSubmitQuiz";
 import { AuthContext } from "../components/auth/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const useGameLogic = () => {
   const { code } = useParams();
@@ -19,6 +20,13 @@ const useGameLogic = () => {
   const [quizFinished, setQuizFinished] = useState(false);
   const [readyToClose, setReadyToClose] = useState(false);
   const username = user?.username || localStorage.getItem("guestName");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!username) {
+      navigate("/");
+    }
+  }, [username, navigate]);
 
   const selectedOptionsRef = useRef(selectedOptions);
   useEffect(() => {

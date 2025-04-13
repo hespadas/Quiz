@@ -46,38 +46,7 @@ const HostView = ({
               "You can navigate between questions and control the flow of the game"
             )}
       </p>
-
       <div className="flex justify-between gap-4">
-        <button
-          onClick={() =>
-            setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
-          }
-          disabled={currentQuestionIndex === 0 || isFinished}
-          className={`flex-1 px-4 py-3 rounded-lg font-medium flex items-center justify-center
-            ${
-              currentQuestionIndex === 0 || isFinished
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300"
-            }
-            transition-all duration-200`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          {t("Previous")}
-        </button>
-
         {!isFinished && (
           <button
             onClick={() => {
