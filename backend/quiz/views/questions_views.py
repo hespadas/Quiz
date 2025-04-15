@@ -1,9 +1,13 @@
+import json
+import os
+
+import openai
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from quiz.models import Question, Quiz
+from quiz.models import Question
 from quiz.serializers.question_serializer import QuestionSerializer
 
 
@@ -51,3 +55,40 @@ def bulk_update_questions(request, quiz_id):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({"message": "Questions updated successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def generate_questions(request):
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    prompt = request.data.get("prompt")
+    completion = openai.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "user",
+  "content": (
+      f"Generate 5 multiple-choice questions about '{prompt}'. "
+      "Each question must have four options, with exactly one correct option. "
+      "Return the result as pure JSON, with no markdown, code blocks, or additional text. "
+      "Example format:\n"
+      "[\n"
+      "  {\n"
+      "    \"text\": \"Question 1?\",\n"
+      "    \"question_type\": \"MC\",\n"
+      "    \"options\": [\n"
+      "      {\"text\": \"Option 1\", \"is_correct\": false},\n"
+      "      {\"text\": \"Option 2\", \"is_correct\": true},\n"
+      "      {\"text\": \"Option 3\", \"is_correct\": false},\n"
+      "      {\"text\": \"Option 4\", \"is_correct\": false}\n"
+      "    ]\n"
+      "  },\n"
+      "  ...\n"
+      "]"
+  )
+            },
+        ],
+    )
+
+    generated_content = completion.choices[0].message.content
+    questions = json.loads(generated_content)
+
+    return Response(questions)

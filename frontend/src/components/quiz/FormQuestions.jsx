@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import axios from "../../services/axiosConfig";
 import QuizQuestions from "./QuizQuestions";
+import GenerateQuestionsButton from "./handleGenerateQuestions";
 
 const FormQuestions = () => {
   const { id } = useParams();
@@ -112,6 +113,11 @@ const FormQuestions = () => {
         </div>
         <div className="p-6">
           <form onSubmit={handleSubmit}>
+            <GenerateQuestionsButton
+              quizTopic={"JavaScript básico"}
+              questions={questions}
+              setQuestions={setQuestions}
+            />
             <QuizQuestions questions={questions} setQuestions={setQuestions} />
             <div className="mt-8 flex justify-end">
               <button

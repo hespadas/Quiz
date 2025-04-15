@@ -29,5 +29,6 @@ urlpatterns = [
     path('user-info/', UserInfoView.as_view(), name='user_info'),
     path("api/quizzes/<int:quiz_id>/questions/", QuestionListView.as_view(), name="question-list"),
     path("api/quizzes/<int:quiz_id>/questions/bulk-update/", bulk_update_questions, name="question-bulk-update"),
+    path('api/gpt/generate-questions/', views.questions_views.generate_questions, name='generate-questions'),
     path('quizzes/submit/<int:quiz_id>/', views.quiz_views.submit_quiz, name='quiz-submit'),
 ]
