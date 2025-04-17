@@ -57,16 +57,25 @@ def bulk_update_questions(request, quiz_id):
     return Response({"message": "Questions updated successfully"}, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def generate_questions(request):
     openai.api_key = os.getenv("OPENAI_API_KEY")
-    prompt = request.data.get("prompt")
+    quiz_topic = request.data.get("quiz_topic")
+    question_count = request.data.get("question_count", 10)
+    if not quiz_topic:
+        return Response(
+            {"detail": "quiz_topic is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     completion = openai.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4.1-mini",
+        temperature=0.2,
+        max_tokens=question_count * 120,
         messages=[
             {"role": "user",
   "content": (
-      f"Generate 5 multiple-choice questions about '{prompt}'. "
+      f"Generate {question_count} multiple-choice questions about:{quiz_topic}. "
+       "The questions should be language from topics like: "
       "Each question must have four options, with exactly one correct option. "
       "Return the result as pure JSON, with no markdown, code blocks, or additional text. "
       "Example format:\n"
