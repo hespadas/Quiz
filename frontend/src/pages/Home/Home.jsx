@@ -47,7 +47,7 @@ export const Home = () => {
         <div className="text-center mb-10">
           <div className="relative w-28 h-28 mx-auto">
             <img
-              src="/img/White_Rabbit_Alice_Wonderland.jpeg"
+              src="/img/icon.png"
               alt="Profile"
               className="h-28 w-28 object-cover rounded-full shadow-lg border-4 border-white"
             />
