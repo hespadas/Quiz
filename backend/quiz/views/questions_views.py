@@ -73,26 +73,26 @@ def generate_questions(request):
         max_tokens=question_count * 120,
         messages=[
             {"role": "user",
-  "content": (
-      f"Generate {question_count} multiple-choice questions about:{quiz_topic}. "
-       "The questions should be language from topics like: "
-      "Each question must have four options, with exactly one correct option. "
-      "Return the result as pure JSON, with no markdown, code blocks, or additional text. "
-      "Example format:\n"
-      "[\n"
-      "  {\n"
-      "    \"text\": \"Question 1?\",\n"
-      "    \"question_type\": \"MC\",\n"
-      "    \"options\": [\n"
-      "      {\"text\": \"Option 1\", \"is_correct\": false},\n"
-      "      {\"text\": \"Option 2\", \"is_correct\": true},\n"
-      "      {\"text\": \"Option 3\", \"is_correct\": false},\n"
-      "      {\"text\": \"Option 4\", \"is_correct\": false}\n"
-      "    ]\n"
-      "  },\n"
-      "  ...\n"
-      "]"
-  )
+             "content": (
+                 f"Generate {question_count} multiple-choice questions about:{quiz_topic}. "
+                 "The questions should be language from topics like: "
+                 "Each question must have four options, with exactly one correct option. "
+                 "Return the result as pure JSON, with no markdown, code blocks, or additional text. "
+                 "Example format:\n"
+                 "[\n"
+                 "  {\n"
+                 "    \"text\": \"Question 1?\",\n"
+                 "    \"question_type\": \"MC\",\n"
+                 "    \"options\": [\n"
+                 "      {\"text\": \"Option 1\", \"is_correct\": false},\n"
+                 "      {\"text\": \"Option 2\", \"is_correct\": true},\n"
+                 "      {\"text\": \"Option 3\", \"is_correct\": false},\n"
+                 "      {\"text\": \"Option 4\", \"is_correct\": false}\n"
+                 "    ]\n"
+                 "  },\n"
+                 "  ...\n"
+                 "]"
+                )
             },
         ],
     )
