@@ -1,5 +1,5 @@
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from quiz.models import Game
@@ -23,3 +23,5 @@ class GameRetrieveView(generics.RetrieveAPIView):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
     lookup_field = 'code'
+    permission_classes = [AllowAny]
+    authentication_classes = []
