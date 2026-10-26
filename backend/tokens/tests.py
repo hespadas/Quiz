@@ -8,7 +8,6 @@ User = get_user_model()  # Suporta modelo customizado
 
 class TokenObtainTests(APITestCase):
     def setUp(self):
-        # Criando usuário não verificado
         self.user = User.objects.create_user(
             username="testuser",
             password="testpassword",
